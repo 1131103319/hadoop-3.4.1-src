@@ -1,0 +1,192 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="CompilerConfiguration">
+    <annotationProcessing>
+      <profile name="Maven default annotation processors profile" enabled="true">
+        <sourceOutputDir name="target/generated-sources/annotations" />
+        <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
+        <outputRelativeToContentRoot value="true" />
+        <module name="hadoop-client" />
+        <module name="hadoop-extras" />
+        <module name="hadoop-tools-dist" />
+        <module name="hadoop-yarn-server-timelineservice" />
+        <module name="hadoop-yarn-server-web-proxy" />
+        <module name="hadoop-azure" />
+        <module name="hadoop-dynamometer-blockgen" />
+        <module name="hadoop-yarn-server-resourcemanager" />
+        <module name="hadoop-yarn-server-applicationhistoryservice" />
+        <module name="hadoop-resourceestimator" />
+        <module name="hadoop-common" />
+        <module name="hadoop-yarn-services-api" />
+        <module name="hadoop-yarn-server-timelineservice-documentstore" />
+        <module name="hadoop-mapreduce-client-core" />
+        <module name="hadoop-yarn-csi" />
+        <module name="hadoop-aliyun" />
+        <module name="hadoop-yarn-server-sharedcachemanager" />
+        <module name="hadoop-yarn-server-timeline-pluginstorage" />
+        <module name="hadoop-kafka" />
+        <module name="hadoop-datajoin" />
+        <module name="hadoop-fs2img" />
+        <module name="hadoop-kms" />
+        <module name="hadoop-yarn-server-router" />
+        <module name="hadoop-yarn-server-nodemanager" />
+        <module name="hadoop-hdfs-client" />
+        <module name="hadoop-assemblies" />
+        <module name="hadoop-nfs" />
+        <module name="hadoop-archive-logs" />
+        <module name="hadoop-sls" />
+        <module name="hadoop-yarn-applications-catalog-webapp" />
+        <module name="hadoop-client-minicluster" />
+        <module name="hadoop-minicluster" />
+        <module name="hadoop-yarn-server-tests" />
+        <module name="hadoop-dynamometer-dist" />
+        <module name="hadoop-yarn-server-timelineservice-hbase-tests" />
+        <module name="hadoop-hdfs-httpfs" />
+        <module name="hadoop-yarn-api" />
+        <module name="hadoop-huaweicloud" />
+        <module name="hadoop-cloud-storage" />
+        <module name="hadoop-yarn-common" />
+        <module name="hadoop-distcp" />
+        <module name="hadoop-yarn-services-core" />
+        <module name="hadoop-mapreduce-client-jobclient" />
+        <module name="hadoop-client-integration-tests" />
+        <module name="hadoop-dynamometer-infra" />
+        <module name="hadoop-yarn-server-globalpolicygenerator" />
+        <module name="hadoop-streaming" />
+        <module name="hadoop-mapreduce-client-common" />
+        <module name="hadoop-yarn-server-common" />
+        <module name="hadoop-client-api" />
+        <module name="hadoop-hdfs" />
+        <module name="hadoop-hdfs-nfs" />
+        <module name="hadoop-mapreduce-client-hs" />
+        <module name="hadoop-hdfs-rbf" />
+        <module name="hadoop-openstack" />
+        <module name="hadoop-yarn-registry" />
+        <module name="hadoop-mapreduce-client-nativetask" />
+        <module name="hadoop-mapreduce-client-app" />
+        <module name="hadoop-federation-balance" />
+        <module name="hadoop-minikdc" />
+        <module name="hadoop-mapreduce-client-shuffle" />
+        <module name="hadoop-rumen" />
+        <module name="hadoop-mapreduce-client-uploader" />
+        <module name="hadoop-auth-examples" />
+        <module name="hadoop-yarn-server-timelineservice-hbase-client" />
+        <module name="hadoop-hdfs-native-client" />
+        <module name="hadoop-annotations" />
+        <module name="hadoop-azure-datalake" />
+        <module name="hadoop-aws" />
+        <module name="hadoop-gridmix" />
+        <module name="hadoop-auth" />
+        <module name="hadoop-yarn-client" />
+        <module name="hadoop-build-tools" />
+        <module name="hadoop-yarn-server-timelineservice-hbase-common" />
+        <module name="hadoop-cos" />
+        <module name="hadoop-yarn-server-timelineservice-hbase-server-1" />
+        <module name="hadoop-mapreduce-examples" />
+        <module name="hadoop-yarn-applications-mawo-core" />
+        <module name="hadoop-mapreduce-client-hs-plugins" />
+        <module name="hadoop-registry" />
+        <module name="hadoop-yarn-applications-distributedshell" />
+        <module name="hadoop-client-runtime" />
+        <module name="hadoop-yarn-applications-unmanaged-am-launcher" />
+        <module name="hadoop-maven-plugins" />
+        <module name="hadoop-dynamometer-workload" />
+        <module name="hadoop-dist" />
+        <module name="hadoop-benchmark" />
+        <module name="hadoop-archives" />
+      </profile>
+    </annotationProcessing>
+    <bytecodeTargetLevel target="8" />
+  </component>
+  <component name="JavacSettings">
+    <option name="ADDITIONAL_OPTIONS_OVERRIDE">
+      <module name="hadoop-aliyun" options="-h $PROJECT_DIR$/hadoop-tools/hadoop-aliyun/target/native/javah/" />
+      <module name="hadoop-annotations" options="-h $PROJECT_DIR$/hadoop-common-project/hadoop-annotations/target/native/javah/" />
+      <module name="hadoop-archive-logs" options="-h $PROJECT_DIR$/hadoop-tools/hadoop-archive-logs/target/native/javah/" />
+      <module name="hadoop-archives" options="-h $PROJECT_DIR$/hadoop-tools/hadoop-archives/target/native/javah/" />
+      <module name="hadoop-assemblies" options="-h $PROJECT_DIR$/hadoop-assemblies/target/native/javah/" />
+      <module name="hadoop-auth" options="-h $PROJECT_DIR$/hadoop-common-project/hadoop-auth/target/native/javah/" />
+      <module name="hadoop-auth-examples" options="-h $PROJECT_DIR$/hadoop-common-project/hadoop-auth-examples/target/native/javah/" />
+      <module name="hadoop-aws" options="-h $PROJECT_DIR$/hadoop-tools/hadoop-aws/target/native/javah/" />
+      <module name="hadoop-azure" options="-h $PROJECT_DIR$/hadoop-tools/hadoop-azure/target/native/javah/" />
+      <module name="hadoop-azure-datalake" options="-h $PROJECT_DIR$/hadoop-tools/hadoop-azure-datalake/target/native/javah/" />
+      <module name="hadoop-benchmark" options="-h $PROJECT_DIR$/hadoop-tools/hadoop-benchmark/target/native/javah/" />
+      <module name="hadoop-client" options="-h $PROJECT_DIR$/hadoop-client-modules/hadoop-client/target/native/javah/" />
+      <module name="hadoop-client-api" options="-h $PROJECT_DIR$/hadoop-client-modules/hadoop-client-api/target/native/javah/" />
+      <module name="hadoop-client-integration-tests" options="-h $PROJECT_DIR$/hadoop-client-modules/hadoop-client-integration-tests/target/native/javah/" />
+      <module name="hadoop-client-minicluster" options="-h $PROJECT_DIR$/hadoop-client-modules/hadoop-client-minicluster/target/native/javah/" />
+      <module name="hadoop-client-runtime" options="-h $PROJECT_DIR$/hadoop-client-modules/hadoop-client-runtime/target/native/javah/" />
+      <module name="hadoop-cloud-storage" options="-h $PROJECT_DIR$/hadoop-cloud-storage-project/hadoop-cloud-storage/target/native/javah/" />
+      <module name="hadoop-common" options="-h $PROJECT_DIR$/hadoop-common-project/hadoop-common/target/native/javah/" />
+      <module name="hadoop-cos" options="-h $PROJECT_DIR$/hadoop-cloud-storage-project/hadoop-cos/target/native/javah/" />
+      <module name="hadoop-datajoin" options="-h $PROJECT_DIR$/hadoop-tools/hadoop-datajoin/target/native/javah/" />
+      <module name="hadoop-dist" options="-h $PROJECT_DIR$/hadoop-dist/target/native/javah/" />
+      <module name="hadoop-distcp" options="-h $PROJECT_DIR$/hadoop-tools/hadoop-distcp/target/native/javah/" />
+      <module name="hadoop-dynamometer-blockgen" options="-h $PROJECT_DIR$/hadoop-tools/hadoop-dynamometer/hadoop-dynamometer-blockgen/target/native/javah/" />
+      <module name="hadoop-dynamometer-dist" options="-h $PROJECT_DIR$/hadoop-tools/hadoop-dynamometer/hadoop-dynamometer-dist/target/native/javah/" />
+      <module name="hadoop-dynamometer-infra" options="-h $PROJECT_DIR$/hadoop-tools/hadoop-dynamometer/hadoop-dynamometer-infra/target/native/javah/" />
+      <module name="hadoop-dynamometer-workload" options="-h $PROJECT_DIR$/hadoop-tools/hadoop-dynamometer/hadoop-dynamometer-workload/target/native/javah/" />
+      <module name="hadoop-extras" options="-h $PROJECT_DIR$/hadoop-tools/hadoop-extras/target/native/javah/" />
+      <module name="hadoop-federation-balance" options="-h $PROJECT_DIR$/hadoop-tools/hadoop-federation-balance/target/native/javah/" />
+      <module name="hadoop-fs2img" options="-h $PROJECT_DIR$/hadoop-tools/hadoop-fs2img/target/native/javah/" />
+      <module name="hadoop-gridmix" options="-h $PROJECT_DIR$/hadoop-tools/hadoop-gridmix/target/native/javah/" />
+      <module name="hadoop-hdfs" options="-h $PROJECT_DIR$/hadoop-hdfs-project/hadoop-hdfs/target/native/javah/" />
+      <module name="hadoop-hdfs-client" options="-h $PROJECT_DIR$/hadoop-hdfs-project/hadoop-hdfs-client/target/native/javah/" />
+      <module name="hadoop-hdfs-httpfs" options="-h $PROJECT_DIR$/hadoop-hdfs-project/hadoop-hdfs-httpfs/target/native/javah/" />
+      <module name="hadoop-hdfs-native-client" options="-h $PROJECT_DIR$/hadoop-hdfs-project/hadoop-hdfs-native-client/target/native/javah/" />
+      <module name="hadoop-hdfs-nfs" options="-h $PROJECT_DIR$/hadoop-hdfs-project/hadoop-hdfs-nfs/target/native/javah/" />
+      <module name="hadoop-hdfs-rbf" options="-h $PROJECT_DIR$/hadoop-hdfs-project/hadoop-hdfs-rbf/target/native/javah/" />
+      <module name="hadoop-huaweicloud" options="-h $PROJECT_DIR$/hadoop-cloud-storage-project/hadoop-huaweicloud/target/native/javah/" />
+      <module name="hadoop-kafka" options="-h $PROJECT_DIR$/hadoop-tools/hadoop-kafka/target/native/javah/" />
+      <module name="hadoop-kms" options="-h $PROJECT_DIR$/hadoop-common-project/hadoop-kms/target/native/javah/" />
+      <module name="hadoop-mapreduce-client-app" options="-h $PROJECT_DIR$/hadoop-mapreduce-project/hadoop-mapreduce-client/hadoop-mapreduce-client-app/target/native/javah/" />
+      <module name="hadoop-mapreduce-client-common" options="-h $PROJECT_DIR$/hadoop-mapreduce-project/hadoop-mapreduce-client/hadoop-mapreduce-client-common/target/native/javah/" />
+      <module name="hadoop-mapreduce-client-core" options="-h $PROJECT_DIR$/hadoop-mapreduce-project/hadoop-mapreduce-client/hadoop-mapreduce-client-core/target/native/javah/" />
+      <module name="hadoop-mapreduce-client-hs" options="-h $PROJECT_DIR$/hadoop-mapreduce-project/hadoop-mapreduce-client/hadoop-mapreduce-client-hs/target/native/javah/" />
+      <module name="hadoop-mapreduce-client-hs-plugins" options="-h $PROJECT_DIR$/hadoop-mapreduce-project/hadoop-mapreduce-client/hadoop-mapreduce-client-hs-plugins/target/native/javah/" />
+      <module name="hadoop-mapreduce-client-jobclient" options="-h $PROJECT_DIR$/hadoop-mapreduce-project/hadoop-mapreduce-client/hadoop-mapreduce-client-jobclient/target/native/javah/" />
+      <module name="hadoop-mapreduce-client-nativetask" options="-h $PROJECT_DIR$/hadoop-mapreduce-project/hadoop-mapreduce-client/hadoop-mapreduce-client-nativetask/target/native/javah/" />
+      <module name="hadoop-mapreduce-client-shuffle" options="-h $PROJECT_DIR$/hadoop-mapreduce-project/hadoop-mapreduce-client/hadoop-mapreduce-client-shuffle/target/native/javah/" />
+      <module name="hadoop-mapreduce-client-uploader" options="-h $PROJECT_DIR$/hadoop-mapreduce-project/hadoop-mapreduce-client/hadoop-mapreduce-client-uploader/target/native/javah/" />
+      <module name="hadoop-mapreduce-examples" options="-h $PROJECT_DIR$/hadoop-mapreduce-project/hadoop-mapreduce-examples/target/native/javah/" />
+      <module name="hadoop-maven-plugins" options="-h $PROJECT_DIR$/hadoop-maven-plugins/target/native/javah/" />
+      <module name="hadoop-minicluster" options="-h $PROJECT_DIR$/hadoop-minicluster/target/native/javah/" />
+      <module name="hadoop-minikdc" options="-h $PROJECT_DIR$/hadoop-common-project/hadoop-minikdc/target/native/javah/" />
+      <module name="hadoop-nfs" options="-h $PROJECT_DIR$/hadoop-common-project/hadoop-nfs/target/native/javah/" />
+      <module name="hadoop-openstack" options="-h $PROJECT_DIR$/hadoop-tools/hadoop-openstack/target/native/javah/" />
+      <module name="hadoop-registry" options="-h $PROJECT_DIR$/hadoop-common-project/hadoop-registry/target/native/javah/" />
+      <module name="hadoop-resourceestimator" options="-h $PROJECT_DIR$/hadoop-tools/hadoop-resourceestimator/target/native/javah/" />
+      <module name="hadoop-rumen" options="-h $PROJECT_DIR$/hadoop-tools/hadoop-rumen/target/native/javah/" />
+      <module name="hadoop-sls" options="-h $PROJECT_DIR$/hadoop-tools/hadoop-sls/target/native/javah/" />
+      <module name="hadoop-streaming" options="-h $PROJECT_DIR$/hadoop-tools/hadoop-streaming/target/native/javah/" />
+      <module name="hadoop-tools-dist" options="-h $PROJECT_DIR$/hadoop-tools/hadoop-tools-dist/target/native/javah/" />
+      <module name="hadoop-yarn-api" options="-h $PROJECT_DIR$/hadoop-yarn-project/hadoop-yarn/hadoop-yarn-api/target/native/javah/" />
+      <module name="hadoop-yarn-applications-catalog-webapp" options="-endorseddirs $PROJECT_DIR$/hadoop-yarn-project/hadoop-yarn/hadoop-yarn-applications/hadoop-yarn-applications-catalog/hadoop-yarn-applications-catalog-webapp/target/endorsed -h $PROJECT_DIR$/hadoop-yarn-project/hadoop-yarn/hadoop-yarn-applications/hadoop-yarn-applications-catalog/hadoop-yarn-applications-catalog-webapp/target/native/javah/" />
+      <module name="hadoop-yarn-applications-distributedshell" options="-h $PROJECT_DIR$/hadoop-yarn-project/hadoop-yarn/hadoop-yarn-applications/hadoop-yarn-applications-distributedshell/target/native/javah/" />
+      <module name="hadoop-yarn-applications-mawo-core" options="-h $PROJECT_DIR$/hadoop-yarn-project/hadoop-yarn/hadoop-yarn-applications/hadoop-yarn-applications-mawo/hadoop-yarn-applications-mawo-core/target/native/javah/" />
+      <module name="hadoop-yarn-applications-unmanaged-am-launcher" options="-h $PROJECT_DIR$/hadoop-yarn-project/hadoop-yarn/hadoop-yarn-applications/hadoop-yarn-applications-unmanaged-am-launcher/target/native/javah/" />
+      <module name="hadoop-yarn-client" options="-h $PROJECT_DIR$/hadoop-yarn-project/hadoop-yarn/hadoop-yarn-client/target/native/javah/" />
+      <module name="hadoop-yarn-common" options="-h $PROJECT_DIR$/hadoop-yarn-project/hadoop-yarn/hadoop-yarn-common/target/native/javah/" />
+      <module name="hadoop-yarn-csi" options="-h $PROJECT_DIR$/hadoop-yarn-project/hadoop-yarn/hadoop-yarn-csi/target/native/javah/" />
+      <module name="hadoop-yarn-registry" options="-h $PROJECT_DIR$/hadoop-yarn-project/hadoop-yarn/hadoop-yarn-registry/target/native/javah/" />
+      <module name="hadoop-yarn-server-applicationhistoryservice" options="-h $PROJECT_DIR$/hadoop-yarn-project/hadoop-yarn/hadoop-yarn-server/hadoop-yarn-server-applicationhistoryservice/target/native/javah/" />
+      <module name="hadoop-yarn-server-common" options="-h $PROJECT_DIR$/hadoop-yarn-project/hadoop-yarn/hadoop-yarn-server/hadoop-yarn-server-common/target/native/javah/" />
+      <module name="hadoop-yarn-server-globalpolicygenerator" options="-h $PROJECT_DIR$/hadoop-yarn-project/hadoop-yarn/hadoop-yarn-server/hadoop-yarn-server-globalpolicygenerator/target/native/javah/" />
+      <module name="hadoop-yarn-server-nodemanager" options="-h $PROJECT_DIR$/hadoop-yarn-project/hadoop-yarn/hadoop-yarn-server/hadoop-yarn-server-nodemanager/target/native/javah/" />
+      <module name="hadoop-yarn-server-resourcemanager" options="-h $PROJECT_DIR$/hadoop-yarn-project/hadoop-yarn/hadoop-yarn-server/hadoop-yarn-server-resourcemanager/target/native/javah/" />
+      <module name="hadoop-yarn-server-router" options="-h $PROJECT_DIR$/hadoop-yarn-project/hadoop-yarn/hadoop-yarn-server/hadoop-yarn-server-router/target/native/javah/" />
+      <module name="hadoop-yarn-server-sharedcachemanager" options="-h $PROJECT_DIR$/hadoop-yarn-project/hadoop-yarn/hadoop-yarn-server/hadoop-yarn-server-sharedcachemanager/target/native/javah/" />
+      <module name="hadoop-yarn-server-tests" options="-h $PROJECT_DIR$/hadoop-yarn-project/hadoop-yarn/hadoop-yarn-server/hadoop-yarn-server-tests/target/native/javah/" />
+      <module name="hadoop-yarn-server-timeline-pluginstorage" options="-h $PROJECT_DIR$/hadoop-yarn-project/hadoop-yarn/hadoop-yarn-server/hadoop-yarn-server-timeline-pluginstorage/target/native/javah/" />
+      <module name="hadoop-yarn-server-timelineservice" options="-h $PROJECT_DIR$/hadoop-yarn-project/hadoop-yarn/hadoop-yarn-server/hadoop-yarn-server-timelineservice/target/native/javah/" />
+      <module name="hadoop-yarn-server-timelineservice-documentstore" options="-h $PROJECT_DIR$/hadoop-yarn-project/hadoop-yarn/hadoop-yarn-server/hadoop-yarn-server-timelineservice-documentstore/target/native/javah/" />
+      <module name="hadoop-yarn-server-timelineservice-hbase-client" options="-h $PROJECT_DIR$/hadoop-yarn-project/hadoop-yarn/hadoop-yarn-server/hadoop-yarn-server-timelineservice-hbase/hadoop-yarn-server-timelineservice-hbase-client/target/native/javah/" />
+      <module name="hadoop-yarn-server-timelineservice-hbase-common" options="-h $PROJECT_DIR$/hadoop-yarn-project/hadoop-yarn/hadoop-yarn-server/hadoop-yarn-server-timelineservice-hbase/hadoop-yarn-server-timelineservice-hbase-common/target/native/javah/" />
+      <module name="hadoop-yarn-server-timelineservice-hbase-server-1" options="-h $PROJECT_DIR$/hadoop-yarn-project/hadoop-yarn/hadoop-yarn-server/hadoop-yarn-server-timelineservice-hbase/hadoop-yarn-server-timelineservice-hbase-server/hadoop-yarn-server-timelineservice-hbase-server-1/target/native/javah/" />
+      <module name="hadoop-yarn-server-timelineservice-hbase-tests" options="-h $PROJECT_DIR$/hadoop-yarn-project/hadoop-yarn/hadoop-yarn-server/hadoop-yarn-server-timelineservice-hbase-tests/target/native/javah/" />
+      <module name="hadoop-yarn-server-web-proxy" options="-h $PROJECT_DIR$/hadoop-yarn-project/hadoop-yarn/hadoop-yarn-server/hadoop-yarn-server-web-proxy/target/native/javah/" />
+      <module name="hadoop-yarn-services-api" options="-h $PROJECT_DIR$/hadoop-yarn-project/hadoop-yarn/hadoop-yarn-applications/hadoop-yarn-services/hadoop-yarn-services-api/target/native/javah/" />
+      <module name="hadoop-yarn-services-core" options="-h $PROJECT_DIR$/hadoop-yarn-project/hadoop-yarn/hadoop-yarn-applications/hadoop-yarn-services/hadoop-yarn-services-core/target/native/javah/" />
+    </option>
+  </component>
+</project>
