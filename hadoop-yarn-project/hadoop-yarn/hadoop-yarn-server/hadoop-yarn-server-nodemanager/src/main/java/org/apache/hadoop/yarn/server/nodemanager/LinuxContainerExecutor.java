@@ -18,45 +18,7 @@
 
 package org.apache.hadoop.yarn.server.nodemanager;
 
-import static org.apache.hadoop.yarn.server.nodemanager.containermanager.linux.runtime.LinuxContainerRuntimeConstants.APPID;
-import static org.apache.hadoop.yarn.server.nodemanager.containermanager.linux.runtime.LinuxContainerRuntimeConstants.APPLICATION_LOCAL_DIRS;
-import static org.apache.hadoop.yarn.server.nodemanager.containermanager.linux.runtime.LinuxContainerRuntimeConstants.CONTAINER_ID_STR;
-import static org.apache.hadoop.yarn.server.nodemanager.containermanager.linux.runtime.LinuxContainerRuntimeConstants.CONTAINER_LAUNCH_PREFIX_COMMANDS;
-import static org.apache.hadoop.yarn.server.nodemanager.containermanager.linux.runtime.LinuxContainerRuntimeConstants.CONTAINER_LOCAL_DIRS;
-import static org.apache.hadoop.yarn.server.nodemanager.containermanager.linux.runtime.LinuxContainerRuntimeConstants.CONTAINER_LOG_DIRS;
-import static org.apache.hadoop.yarn.server.nodemanager.containermanager.linux.runtime.LinuxContainerRuntimeConstants.CONTAINER_RUN_CMDS;
-import static org.apache.hadoop.yarn.server.nodemanager.containermanager.linux.runtime.LinuxContainerRuntimeConstants.CONTAINER_WORK_DIR;
-import static org.apache.hadoop.yarn.server.nodemanager.containermanager.linux.runtime.LinuxContainerRuntimeConstants.FILECACHE_DIRS;
-import static org.apache.hadoop.yarn.server.nodemanager.containermanager.linux.runtime.LinuxContainerRuntimeConstants.LOCALIZED_RESOURCES;
-import static org.apache.hadoop.yarn.server.nodemanager.containermanager.linux.runtime.LinuxContainerRuntimeConstants.LOCAL_DIRS;
-import static org.apache.hadoop.yarn.server.nodemanager.containermanager.linux.runtime.LinuxContainerRuntimeConstants.LOG_DIRS;
-import static org.apache.hadoop.yarn.server.nodemanager.containermanager.linux.runtime.LinuxContainerRuntimeConstants.NM_PRIVATE_CONTAINER_SCRIPT_PATH;
-import static org.apache.hadoop.yarn.server.nodemanager.containermanager.linux.runtime.LinuxContainerRuntimeConstants.NM_PRIVATE_KEYSTORE_PATH;
-import static org.apache.hadoop.yarn.server.nodemanager.containermanager.linux.runtime.LinuxContainerRuntimeConstants.NM_PRIVATE_TOKENS_PATH;
-import static org.apache.hadoop.yarn.server.nodemanager.containermanager.linux.runtime.LinuxContainerRuntimeConstants.NM_PRIVATE_TRUSTSTORE_PATH;
-import static org.apache.hadoop.yarn.server.nodemanager.containermanager.linux.runtime.LinuxContainerRuntimeConstants.PID;
-import static org.apache.hadoop.yarn.server.nodemanager.containermanager.linux.runtime.LinuxContainerRuntimeConstants.PID_FILE_PATH;
-import static org.apache.hadoop.yarn.server.nodemanager.containermanager.linux.runtime.LinuxContainerRuntimeConstants.RESOURCES_OPTIONS;
-import static org.apache.hadoop.yarn.server.nodemanager.containermanager.linux.runtime.LinuxContainerRuntimeConstants.RUN_AS_USER;
-import static org.apache.hadoop.yarn.server.nodemanager.containermanager.linux.runtime.LinuxContainerRuntimeConstants.SIGNAL;
-import static org.apache.hadoop.yarn.server.nodemanager.containermanager.linux.runtime.LinuxContainerRuntimeConstants.TC_COMMAND_FILE;
-import static org.apache.hadoop.yarn.server.nodemanager.containermanager.linux.runtime.LinuxContainerRuntimeConstants.USER;
-import static org.apache.hadoop.yarn.server.nodemanager.containermanager.linux.runtime.LinuxContainerRuntimeConstants.USER_FILECACHE_DIRS;
-import static org.apache.hadoop.yarn.server.nodemanager.containermanager.linux.runtime.LinuxContainerRuntimeConstants.USER_LOCAL_DIRS;
-
 import org.apache.hadoop.classification.VisibleForTesting;
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.InterruptedIOException;
-import java.net.InetSocketAddress;
-import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.regex.Pattern;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.hdfs.protocol.datatransfer.IOStreamPair;
@@ -77,36 +39,35 @@ import org.apache.hadoop.yarn.server.nodemanager.containermanager.linux.privileg
 import org.apache.hadoop.yarn.server.nodemanager.containermanager.linux.resources.ResourceHandler;
 import org.apache.hadoop.yarn.server.nodemanager.containermanager.linux.resources.ResourceHandlerException;
 import org.apache.hadoop.yarn.server.nodemanager.containermanager.linux.resources.ResourceHandlerModule;
-import org.apache.hadoop.yarn.server.nodemanager.containermanager.linux.runtime.DefaultLinuxContainerRuntime;
-import org.apache.hadoop.yarn.server.nodemanager.containermanager.linux.runtime.DelegatingLinuxContainerRuntime;
-import org.apache.hadoop.yarn.server.nodemanager.containermanager.linux.runtime.DockerLinuxContainerRuntime;
-import org.apache.hadoop.yarn.server.nodemanager.containermanager.linux.runtime.LinuxContainerRuntime;
-import org.apache.hadoop.yarn.server.nodemanager.containermanager.linux.runtime.OCIContainerRuntime;
+import org.apache.hadoop.yarn.server.nodemanager.containermanager.linux.runtime.*;
 import org.apache.hadoop.yarn.server.nodemanager.containermanager.linux.runtime.docker.DockerCommandExecutor;
 import org.apache.hadoop.yarn.server.nodemanager.containermanager.linux.runtime.docker.DockerRmCommand;
 import org.apache.hadoop.yarn.server.nodemanager.containermanager.localizer.ContainerLocalizer;
 import org.apache.hadoop.yarn.server.nodemanager.containermanager.runtime.ContainerExecutionException;
 import org.apache.hadoop.yarn.server.nodemanager.containermanager.runtime.ContainerRuntimeContext;
-import org.apache.hadoop.yarn.server.nodemanager.executor.ContainerExecContext;
-import org.apache.hadoop.yarn.server.nodemanager.executor.ContainerLivenessContext;
-import org.apache.hadoop.yarn.server.nodemanager.executor.ContainerPrepareContext;
-import org.apache.hadoop.yarn.server.nodemanager.executor.ContainerReacquisitionContext;
-import org.apache.hadoop.yarn.server.nodemanager.executor.ContainerReapContext;
-import org.apache.hadoop.yarn.server.nodemanager.executor.ContainerSignalContext;
-import org.apache.hadoop.yarn.server.nodemanager.executor.ContainerStartContext;
-import org.apache.hadoop.yarn.server.nodemanager.executor.DeletionAsUserContext;
-import org.apache.hadoop.yarn.server.nodemanager.executor.LocalizerStartContext;
+import org.apache.hadoop.yarn.server.nodemanager.executor.*;
 import org.apache.hadoop.yarn.server.nodemanager.util.CgroupsLCEResourcesHandler;
 import org.apache.hadoop.yarn.server.nodemanager.util.DefaultLCEResourcesHandler;
 import org.apache.hadoop.yarn.server.nodemanager.util.LCEResourcesHandler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InterruptedIOException;
+import java.net.InetSocketAddress;
+import java.nio.charset.StandardCharsets;
+import java.util.*;
+import java.util.regex.Pattern;
+
+import static org.apache.hadoop.yarn.server.nodemanager.containermanager.linux.runtime.LinuxContainerRuntimeConstants.*;
+
 /**
  * <p>This class provides {@link Container} execution using a native
  * {@code container-executor} binary. By using a helper written it native code,
  * this class is able to do several things that the
- * {@link DefaultContainerExecutor} cannot, such as execution of applications
+ * {@link org.apache.hadoop.yarn.server.nodemanager.DefaultContainerExecutor} cannot, such as execution of applications
  * as the applications' owners, provide localization that takes advantage of
  * mapping the application owner to a UID on the execution host, resource
  * management through Linux CGROUPS, and Docker support.</p>
@@ -131,6 +92,24 @@ import org.slf4j.LoggerFactory;
  * @see DefaultLinuxContainerRuntime
  * @see DockerLinuxContainerRuntime
  * @see OCIContainerRuntime#isOCICompliantContainerRequested
+ */
+
+/**
+ * todo LinuxContainerExecutor，简称LCE。
+ * todo 每个Container由不同的用户启动。
+ * todo 比如A用户提交的job的container，都由A用户启动。此外支持cgroup、支持单独的配置文件、支持简单的ACL。
+ * todo LCE明显隔离性更好，但有一些限制：
+ * todo 需要linux native程序支持。
+ * todo 准确的说是一个container-executor程序，用C写的，代码见hadoop-yarn-project\hadoop-yarn\hadoop-yarn-server\hadoop-yarn-server-nodemanager\src\main\native\container-executor。
+ * todo 编译hadoop时务必同时编译container-executor。container-executor的路径由属性yarn.nodemanager.linux-container-executor.path指定。
+ * todo container-executor还需要一个配置文件container-executor.cfg。
+ * todo 而且这个配置文件和container-executor的二进制文件相对路径是固定的。
+ * todo 默认情况下container-executor会去../etc/hadoop路径下寻找配置文件，找不到的话会报错。
+ * todo 可以在编译hadoop时指定：mvn package -Pdist,native -DskipTests -Dtar -Dcontainer-executor.conf.dir=../../conf。不知道为何要这样设计。
+ * todo 由于用不同的用户启动Container，所以必须有对应的Linux用户存在。否则会抛异常。这带来一些管理上的麻烦，比如新增一个用户B时，必须在所有NM节点上执行useradd B。
+ * todo container-executor和container-executor.cfg的所有者必须是root。而且他们所在的目录一直上溯到/，所有者也必须是root。所以我们一般把这两个文件放在/etc/yarn下。
+ * todo container-executor文件的权限必须是6050 or --Sr-s---，因为它的原理就是setuid/setgid。
+ * todo group owner必须和启动NM的用户同组。比如NM由yarn用户启动，yarn用户属于hadoop组，那container-executor必须也是hadoop组。
  */
 public class LinuxContainerExecutor extends ContainerExecutor {
 
@@ -386,7 +365,7 @@ public class LinuxContainerExecutor extends ContainerExecutor {
     super.stop();
     linuxContainerRuntime.stop();
   }
-
+//todo 对于LCE，会单独启动一个JVM进程，通过RPC协议LocalizationProtocol与ResourceLocalizationService通信。
   @Override
   public void startLocalizer(LocalizerStartContext ctx)
       throws IOException, InterruptedException {

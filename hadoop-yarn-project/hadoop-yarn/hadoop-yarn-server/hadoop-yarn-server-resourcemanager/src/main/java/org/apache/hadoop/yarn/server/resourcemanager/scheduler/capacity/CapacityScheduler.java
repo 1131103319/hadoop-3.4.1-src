@@ -169,6 +169,25 @@ import org.apache.hadoop.thirdparty.com.google.common.util.concurrent.SettableFu
 
 import static org.apache.hadoop.yarn.server.resourcemanager.scheduler.capacity.CapacitySchedulerConfiguration.QUEUE_MAPPING;
 
+/**
+ * todo Capacity Scheduler的功能
+ *todo  Capacity Scheduler有自己的配置文件，即存放在conf目录下的capacity-scheduler.xml
+ *todo  在Capacity Scheduler的配置文件中，队列queueX的参数Y的配置名称为yarn.scheduler.capacity.queueX.Y
+ *todo  资源分配相关参数：
+ *todo  capacity：队列的最小资源容量（百分比）。注意，所有队列的容量之和应小于100
+ *todo  maximum-capacity：队列的资源使用上限
+ *todo  minimum-user-limit-percent：每个用户最低资源保障（百分比）
+ *todo  user-limit-factor：每个用户最多可使用的资源量（百分比）
+ *todo  限制应用程序数目的相关参数：
+ *todo  maximum-applications：集群或者队列中处于等待和运行状态的应用程序数目上限，这是一个强限制项，一旦集群中应用程序数目超过该上限，后续提交的应用程序将被拒绝。默认值为10000。Hadoop允许从集群和队列两个方面该值，其中，集群的总体数目上限可通过参数yarn.scheduler.capacity.maximum-applications设置，默认为10000，而单个队列可通过参数yarn.scheduler.capacity.<queue-path>.maximum-applications设置适合自己的值
+ *todo  maximum-am-resource-percent：集群中用于运行应用程序ApplicationMaster的资源比例上限，该参数通常用于限制处于活动状态的应用程序数目。所有队列的ApplicationMaster资源比例上限可通过参数yarn.scheduler.capacity.maximum-am-resource-percent设置，而单个队列可通过参数yarn.scheduler.capacity.<queue-path>.maximum-am-resource-percent设置适合自己的值
+ *todo  队列访问权限控制
+ *todo  state：队列状态，可以为STOPPED或者RUNNING。如果一个队列处于STOPPED状态，用户不可以将应用程序提交到该队列或者它的子队列中。类似的，如果root队列处于STOPPED状态，则用户不可以向集群提交应用程序，但正在运行的应用程序可以正常运行结束，以便队列可以优雅地退出
+ *todo  acl_submit_application：限定哪些用户/用户组可向给定队列中提交应用程序。该属性具有继承性，即如果一个用户可以向某个队列提交应用程序，则它可以向它所有子队列中提交应用程序
+ *todo  acl_administer_queue：为队列指定一个管理员，该管理员可控制该队列的所有应用程序，比如杀死任意一个应用程序等。同样，该属性具有继承性，如果一个用户可以向某个队列中提交应用程序，则它可以向它的所有子队列中提交应用程序
+ *todo  当管理员需动态修改队列资源配置时，可修改配置文件conf/capacity-scheduler.xml，然后运行“yarn rmadmin -refreshQueues”
+ *todo  当前Capacity Scheduler不允许管理员动态减少队列数目，且更新的配置参数值应是合法值，否则会导致配置文件加载失败
+ */
 @LimitedPrivate("yarn")
 @Evolving
 @SuppressWarnings("unchecked")

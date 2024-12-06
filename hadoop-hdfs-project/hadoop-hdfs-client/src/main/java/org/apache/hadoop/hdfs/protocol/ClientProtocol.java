@@ -17,32 +17,17 @@
  */
 package org.apache.hadoop.hdfs.protocol;
 
-import java.io.IOException;
-import java.util.EnumSet;
-import java.util.List;
-import java.util.Map;
-
 import org.apache.hadoop.classification.InterfaceAudience;
 import org.apache.hadoop.classification.InterfaceStability;
 import org.apache.hadoop.crypto.CryptoProtocolVersion;
 import org.apache.hadoop.fs.BatchedRemoteIterator.BatchedEntries;
-import org.apache.hadoop.fs.Path;
-import org.apache.hadoop.fs.PathIsNotEmptyDirectoryException;
-import org.apache.hadoop.ha.HAServiceProtocol;
-import org.apache.hadoop.hdfs.AddBlockFlag;
-import org.apache.hadoop.fs.CacheFlag;
-import org.apache.hadoop.fs.ContentSummary;
-import org.apache.hadoop.fs.CreateFlag;
-import org.apache.hadoop.fs.FsServerDefaults;
-import org.apache.hadoop.fs.Options;
-import org.apache.hadoop.fs.QuotaUsage;
-import org.apache.hadoop.fs.StorageType;
-import org.apache.hadoop.fs.XAttr;
-import org.apache.hadoop.fs.XAttrSetFlag;
+import org.apache.hadoop.fs.*;
 import org.apache.hadoop.fs.permission.AclEntry;
 import org.apache.hadoop.fs.permission.AclStatus;
 import org.apache.hadoop.fs.permission.FsAction;
 import org.apache.hadoop.fs.permission.FsPermission;
+import org.apache.hadoop.ha.HAServiceProtocol;
+import org.apache.hadoop.hdfs.AddBlockFlag;
 import org.apache.hadoop.hdfs.inotify.EventBatchList;
 import org.apache.hadoop.hdfs.protocol.HdfsConstants.ReencryptAction;
 import org.apache.hadoop.hdfs.protocol.HdfsConstants.RollingUpgradeAction;
@@ -61,6 +46,11 @@ import org.apache.hadoop.security.KerberosInfo;
 import org.apache.hadoop.security.token.Token;
 import org.apache.hadoop.security.token.TokenInfo;
 
+import java.io.IOException;
+import java.util.EnumSet;
+import java.util.List;
+import java.util.Map;
+
 import static org.apache.hadoop.hdfs.client.HdfsClientConfigKeys.DFS_NAMENODE_KERBEROS_PRINCIPAL_KEY;
 
 /**********************************************************************
@@ -74,6 +64,9 @@ import static org.apache.hadoop.hdfs.client.HdfsClientConfigKeys.DFS_NAMENODE_KE
 @KerberosInfo(
     serverPrincipal = DFS_NAMENODE_KERBEROS_PRINCIPAL_KEY)
 @TokenInfo(DelegationTokenSelector.class)
+/**
+ * todo ClientProtocol中与客户端读取文件相关的方法主要有两个： getBlockLocations()和 reportBadBlocks()。
+ */
 public interface ClientProtocol {
 
   /**
@@ -130,6 +123,21 @@ public interface ClientProtocol {
    *           contains a symlink
    * @throws IOException If an I/O error occurred
    */
+    /**
+     *
+     * todo 客户端会调用ClientProtocol.getBlockLocations()方法
+     * todo 获取HDFS文件指定范围内所有数据块的位置信息。
+     * todo 这个方法的参数是HDFS文件的文件名以及读取范围，返回值是文件指定范围内所有数据块的文件名以及它们的位置信息，
+     * todo 使用LocatedBlocks对象封装。
+     * todo 每个数据块的位置信息指的是存储这个数据块副本的所有Datanode的信息，
+     * todo 这些Datanode会以与当前客户端的距离远近排序。
+     * todo 客户端读取数据时，会首先调用getBlockLocations()方法获 取HDFS文件的所有数据块的位置信息，
+     * @param src
+     * @param offset
+     * @param length
+     * @return
+     * @throws IOException
+     */
   @Idempotent
   @ReadOnly(atimeAffected = true, isCoordinated = true)
   LocatedBlocks getBlockLocations(String src, long offset, long length)
@@ -140,6 +148,13 @@ public interface ClientProtocol {
    * @return a set of server default configuration values
    * @throws IOException
    */
+
+    /**
+     *
+     * todo 客户端会调用ClientProtocol.reportBadBlocks()方法向Namenode汇报错误的数据块。
+     * todo 当客户端从数据节点读取数据块且发现数据块的校验和并不正确时，
+     * todo 就会调用这个方法向 Namenode汇报这个错误的数据块信息。
+     */
   @Idempotent
   @ReadOnly(isCoordinated = true)
   FsServerDefaults getServerDefaults() throws IOException;
@@ -207,6 +222,13 @@ public interface ClientProtocol {
    * <p>
    * <em>Note that create with {@link CreateFlag#OVERWRITE} is idempotent.</em>
    */
+    /**
+     *todo create()方法用于在HDFS的文件系统目录树中创建一个新的空文件，创建的路径由src 参数指定。
+     *todo 这个空文件创建后对于其他的客户端是“可读”的，但是这些客户端不能删除、
+     *todo 客户端写一个新的文件 时，会首先调用create()方法在文件系统目录树中创建一个空文件，
+     *todo 然后调用addBlock()方 法获取存储文件数据的数据块的位置信息，
+     *todo 最后客户端就可以根据位置信息建立数据流管 道，向数据节点写入数据了.
+     */
   @AtMostOnce
   HdfsFileStatus create(String src, FsPermission masked,
       String clientName, EnumSetWritable<CreateFlag> flag,
@@ -245,6 +267,16 @@ public interface ClientProtocol {
    * RuntimeExceptions:
    * @throws UnsupportedOperationException if append is not supported
    */
+
+    /**
+     **todo  append()方法用于打开一个已有的文件，
+     **todo  如果这个文件的最后一个数据块没有写满， 则返回这个数据块的位置信息(使用LocatedBlock对象封装);
+     **todo  如果这个文件的最后一个 数据块正好写满，则创建一个新的数据块并添加到这个文件中，
+     **todo  然后返回这个新添加的数据块的位置信息。
+     **todo  客户端追加写一个已有文件时，会先调用append()方法获取最后一个可写数据块的位置信息，
+     **todo  然后建立数据流管道，并向数据节点写入追加的数据。
+     **todo  如果客户端 将这个数据块写满，与create()方法一样，客户端会调用addBlock()方法获取新的数据块。
+     */
   @AtMostOnce
   LastBlockWithStatus append(String src, String clientName,
       EnumSetWritable<CreateFlag> flag) throws IOException;
@@ -387,6 +419,35 @@ public interface ClientProtocol {
    *           contains a symlink
    * @throws IOException If an I/O error occurred
    */
+    /**
+     *todo  abandonBlock()方法用于处理客户端建立数据流管道时数据节点出现故障的情况。
+     *todo  客户端调用abandonBlock()方法放弃一个新申请的数据块。
+     *todo  问题1: 创建数据块失败 ???????
+     *todo  当客 户端获取了一个新申请的数据块，发现无法建立到存储这个数据块副本的某些数据节点的连接时，
+     *todo  会调用abandonBlock()方法通知名字节点放弃这个数据块，
+     *todo  之后客户端会再次调 用addBlock()方法获取新的数据块，
+     *todo  并在传入参数时将无法连接的数据节点放入 excludeNodes参数列表中，
+     *todo  以避免Namenode将数据块的副本分配到该节点上，
+     *todo  造成客户端 再次无法连接这个节点的情况。
+     *todo  问题2:  如果客户端已经成功建立了数据流管道，
+     *todo  在客户端写某个数据块时，存储这个数据块副本的某个数据节点出现了错误该如何处理呢???
+     *todo
+     *todo  客户端首先会
+     *todo  调用getAdditionalDatanode()方法向Namenode申请一个新的Datanode来替代出现故障的 Datanode。
+     *todo  然后客户端会调用updateBlockForPipeline()方法向Namenode申请为这个数据块 分配新的时间戳，
+     *todo  这样故障节点上的没能写完整的数据块的时间戳就会过期，在后续的块 汇报操作中会被删除。
+     *todo  最后客户端就可以使用新的时间戳建立新的数据流管道，来执行对 数据块的写操作了。
+     *todo  数据流管道建立成功后，客户端还需要调用updatePipeline()方法更新
+     *todo  Namenode中当前数据块的数据流管道信息。至此，一个完整的恢复操作结束。
+
+     *todo  问题3: 在写数据的过程中，Client节点也有可能在任 意时刻发生故障 ???
+     *todo
+     *todo  对于任意一个Client打开的文件都需要Client定期调用ClientProtocol.renewLease()
+     *todo  方法更新租约(关于租约请参考第3章中租约相关小节)。
+     *todo  如果Namenode长时间没有收到Client的租约更新消息，
+     *todo  就会认为Client发生故障，这时就 会触发一次租约恢复操作，
+     *todo  关闭文件并且同步所有数据节点上这个文件数据块的状态，确 保HDFS系统中这个文件是正确且一致保存的。
+     */
   @Idempotent
   void abandonBlock(ExtendedBlock b, long fileId,
       String src, String holder)
@@ -429,6 +490,17 @@ public interface ClientProtocol {
    *           contains a symlink
    * @throws IOException If an I/O error occurred
    */
+    /**
+     * todo 客户端调用addBlock()方法向指定文件添加一个新的数据块，
+     * todo 并获取存储这个数据块 副本的所有数据节点的位置信息(使用LocatedBlock对象封装)。
+     * todo 要特别注意的是，调用 addBlock()方法时还要传入上一个数据块的引用。
+     * todo Namenode在分配新的数据块时，会顺便 提交上一个数据块，这里previous参数就是上一个数据块的引用。
+     * todo excludeNodes参数则是 数据节点的黑名单，保存了客户端无法连接的一些数据节点，
+     * todo 建议Namenode在分配保存 数据块副本的数据节点时不要考虑这些节点。
+     * todo favoredNodes参数则是客户端所希望的保存 数据块副本的数据节点的列表。
+     * todo 客户端调用addBlock()方法获取新的数据块的位置信息 后，会建立到这些数据节点的数据流管道，
+     * todo 并通过数据流管道将数据写入数据节点。
+     */
   @Idempotent
   LocatedBlock addBlock(String src, String clientName,
       ExtendedBlock previous, DatanodeInfo[] excludeNodes, long fileId,
@@ -498,6 +570,17 @@ public interface ClientProtocol {
    *           contains a symlink
    * @throws IOException If an I/O error occurred
    */
+    /**
+     * todo 当客户端完成了整个文件的写入操作后，会调用complete()方法通知Namenode。
+     * todo 这个 操作会提交新写入HDFS文件的所有数据块，
+     * todo 当这些数据块的副本数量满足系统配置的最小副本系数(默认值为1)，
+     * todo 也就是该文件的所有数据块至少有一个有效副本时，
+     * todo complete()方法会返回true，
+     * todo 这时Namenode中文件的状态也会从构建中状态转换为正常状 态;
+     * todo 否则，complete()会返回false，客户端就需要重复调用complete()操作，直至该方法返 回true。
+     *
+     */
+
   @Idempotent
   boolean complete(String src, String clientName,
                           ExtendedBlock last, long fileId)

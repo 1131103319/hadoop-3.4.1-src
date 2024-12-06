@@ -17,9 +17,6 @@
  */
 package org.apache.hadoop.hdfs.protocol;
 
-import java.io.IOException;
-import java.util.List;
-
 import org.apache.hadoop.classification.InterfaceAudience;
 import org.apache.hadoop.classification.InterfaceStability;
 import org.apache.hadoop.conf.ReconfigurationTaskStatus;
@@ -27,10 +24,13 @@ import org.apache.hadoop.hdfs.client.BlockReportOptions;
 import org.apache.hadoop.hdfs.client.HdfsClientConfigKeys;
 import org.apache.hadoop.hdfs.security.token.block.BlockTokenIdentifier;
 import org.apache.hadoop.hdfs.security.token.block.BlockTokenSelector;
+import org.apache.hadoop.hdfs.server.datanode.DiskBalancerWorkStatus;
 import org.apache.hadoop.security.KerberosInfo;
 import org.apache.hadoop.security.token.Token;
 import org.apache.hadoop.security.token.TokenInfo;
-import org.apache.hadoop.hdfs.server.datanode.DiskBalancerWorkStatus;
+
+import java.io.IOException;
+import java.util.List;
 
 /** An client-datanode protocol for block recovery
  */
@@ -39,6 +39,13 @@ import org.apache.hadoop.hdfs.server.datanode.DiskBalancerWorkStatus;
 @KerberosInfo(
     serverPrincipal = HdfsClientConfigKeys.DFS_DATANODE_KERBEROS_PRINCIPAL_KEY)
 @TokenInfo(BlockTokenSelector.class)
+/**
+ * todo ClientDatanodeProtocol中定义的接口可以分为两部分：
+ *
+ * todo 一部分是支持HDFS文件读取操作的， 例如getReplicaVisibleLength()以及getBlockLocalPathInfo()；
+ *
+ * todo 另一部分是支持DFSAdmin中与数据节点管理相关的命令
+ */
 public interface ClientDatanodeProtocol {
   /**
    * Until version 9, this class ClientDatanodeProtocol served as both
@@ -72,7 +79,13 @@ public interface ClientDatanodeProtocol {
    *
    * @throws IOException on error
    **/
-  void refreshNamenodes() throws IOException;
+    /**
+     * todo 在用户管理员命令中有一个'hdfs dfsadmindatanodehost:port'命令，
+     * todo 用于触发指定的 Datanode重新加载配置文件，
+     * todo 停止服务那些已经从配置文件中删除的块池(blockPool)， 开始服务新添加的块池。
+*/
+
+     void refreshNamenodes() throws IOException;
 
   /**
    * Delete the block pool directory. If force is false it is deleted only if
@@ -84,6 +97,17 @@ public interface ClientDatanodeProtocol {
    *          deleted along with its contents.
    * @throws IOException
    */
+    /**
+     *
+     * todo 用于从指定Datanode删除blockpoolId对应的块 池，如果force参数被设置了，
+     * todo 那么无论这个块池目录中有没有数据都会被强制删除;
+     * todo 否 则，只有这个块池目录为空的情况下才会被删除。
+     * todo 如果Datanode还在服务 这个块池，这个命令的执行将会失败。
+     * todo 要停止一个数据节点服务指定的块池，需要调用上 面提到的refreshNamenodes()方法。
+     * todo deleteBlockPool()方法有两个参数，其中blockpoolId用于设置要被删除的块池ID;
+     * todo force 用于设置是否强制删除。
+     *
+     */
   void deleteBlockPool(String bpid, boolean force) throws IOException;
 
   /**
@@ -108,6 +132,18 @@ public interface ClientDatanodeProtocol {
    * @throws IOException
    *           on error
    */
+  /**
+   * todo /**
+   *    * HDFS对于本地读取，也就是Client和保存该数据块的Datanode在同一台物理机器上时，是有很多优化的。
+   *    * Client会调用ClientProtocol.getBlockLocaIPathInfo()方法
+   *    * 获取指定数据块文件以及数据块校验文件在当前节点上的本地路径，
+   *    * 然后利用这个本地路径执行本地读取操作，而不是通过流式接口执行远程读取，这样也就大大优化了读取的性能。
+   *    *
+   *    * 客户端会通过调用DataTransferProtocol接口从数据节点获取数据块文件的文件描述符，
+   *    * 然后打开并读取文件以实现短路读操作，而不是通过 ClientDatanodeProtoco接口。
+   *    *
+   *    */
+
   BlockLocalPathInfo getBlockLocalPathInfo(ExtendedBlock block,
       Token<BlockTokenIdentifier> token) throws IOException;
 
@@ -120,6 +156,13 @@ public interface ClientDatanodeProtocol {
    *          the stored data will remain the same during upgrade/restart.
    * @throws IOException
    */
+    /**
+     * todo /**
+     *    * shutdownDatanode()方法用于关闭一个数据节点，这个方法主要是为了支持管理命
+     *
+     * @param forUpgrade
+     * @throws IOException
+     */
   void shutdownDatanode(boolean forUpgrade) throws IOException;
 
   /**
@@ -134,17 +177,31 @@ public interface ClientDatanodeProtocol {
    *
    * @return software/config version and uptime of the datanode
    */
+    /**
+     * todo * getDatanodeInfo()方法用于获取指定Datanode的信息，
+     *    * 这里的信息包括Datanode运行 的HDFS版本、Datanode配置的HDFS版本，
+     *    * 以及Datanode的启动时间。对应于管理命令'hdfs dfsadmin-getDatanodeInfo'。
+     * @return
+     * @throws IOException
+     */
   DatanodeLocalInfo getDatanodeInfo() throws IOException;
 
   /**
    * Asynchronously reload configuration on disk and apply changes.
    */
+    /**
+     * todo* startReconfiguration()方法用于触发Datanode异步地从磁盘重新加载配置，并且应用该 配置。
+     *    * 这个方法用于支持管理命令'hdfs dfsadmin-getDatanodeInfo-reconfigstart'。
+     *    *
+     * @throws IOException
+     */
   void startReconfiguration() throws IOException;
 
   /**
    * Get the status of the previously issued reconfig task.
    * @see org.apache.hadoop.conf.ReconfigurationTaskStatus
    */
+  //todo    * 查询上一次触发的重新加载配置操作的运行情况
   ReconfigurationTaskStatus getReconfigurationStatus() throws IOException;
 
   /**
@@ -168,6 +225,7 @@ public interface ClientDatanodeProtocol {
   /**
    * Get volume report of datanode.
    */
+  //todo    * 用于获取数据块是存储在指定Datanode的哪个卷 (volume)上的
   List<DatanodeVolumeInfo> getVolumeReport() throws IOException;
 
   /**

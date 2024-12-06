@@ -62,6 +62,8 @@ import java.util.concurrent.ConcurrentHashMap;
  * Monitors containers collecting resource usage and preempting the container
  * if it exceeds its limits.
  */
+//todo YARN对内存其实没有真正隔离，而是监视Container进程的内存使用，超出限制后直接杀掉进程。相关逻辑见ContainersMonitorImpl类。
+//todo 进程监控的逻辑见ProcfsBasedProcessTree类，原理就是读取/proc/$pid下面的文件，获得进程的内存占用。
 public class ContainersMonitorImpl extends AbstractService implements
     ContainersMonitor {
 

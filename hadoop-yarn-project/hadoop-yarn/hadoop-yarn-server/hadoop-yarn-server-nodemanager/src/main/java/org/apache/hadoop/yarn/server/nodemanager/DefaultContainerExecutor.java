@@ -75,6 +75,8 @@ import static org.apache.hadoop.yarn.conf.YarnConfiguration.numaAwarenessEnabled
  * todo这三个脚本，都是跟Container相关的，所以它们都被放在一个Container所代表的目录结构下。
  * todo在NodeManager中，会为每个Application，以及每个Container建立一个对应的目录，在每个Container的目录下，就放置了一些运行这个Container必需的信息。
  * todo一般来说，这些目录是位于/tmp这个目录下，并且会在一个Application完成后，被删除。减少磁盘空间的消耗。
+ * todo 这个实现有一些问题，即，对于资源隔离做的并不好。
+ * todo 全部Container都是由运行NodeManager的那个用户启动的。
  */
 public class DefaultContainerExecutor extends ContainerExecutor {
 
@@ -191,14 +193,22 @@ public class DefaultContainerExecutor extends ContainerExecutor {
         createUserLocalDirs(localDirs, user);
         //todo  创建用户缓存目录.
         createUserCacheDirs(localDirs, user);
+        //todo 创建App 目录
+        // create $local.dir/usercache/$user/appcache/$appId
         createAppDirs(localDirs, user, appId);
+        //todo 创建App 日志目录
+        // create $log.dir/$appid
         createAppLogDirs(appId, logDirs, user);
 
         // randomly choose the local directory
+
+        // todo 创建工作目录
+        //  从本地存储目录列表中返回随机选择的应用程序目录。 选择目录的概率与其大小成比例
         Path appStorageDir = getWorkingDir(localDirs, user, appId);
 
         String tokenFn = String.format(TOKEN_FILE_NAME_FMT, locId);
         Path tokenDst = new Path(appStorageDir, tokenFn);
+        //todo 复制文件
         copyFile(nmPrivateContainerTokensPath, tokenDst, user);
         LOG.info("Copying from {} to {}", nmPrivateContainerTokensPath, tokenDst);
 
@@ -209,11 +219,12 @@ public class DefaultContainerExecutor extends ContainerExecutor {
         localizerFc.setWorkingDirectory(appStorageDir);
         LOG.info("Localizer CWD set to {} = {}", appStorageDir,
                 localizerFc.getWorkingDirectory());
-
+        //todo 文件本地化
         ContainerLocalizer localizer =
                 createContainerLocalizer(user, appId, locId, tokenFn, localDirs,
                         localizerFc);
         // TODO: DO it over RPC for maintaining similarity?
+        //todo 这个方法的作用是从ResourceLocalizationService处获取要分发的文件的URI，并下载到本地。
         localizer.runLocalization(nmAddr);
     }
 
@@ -245,6 +256,14 @@ public class DefaultContainerExecutor extends ContainerExecutor {
         return localizer;
     }
 
+    /**
+     * todo launchContainer: 启动Container
+     * todo 这个比较核心, 其实就是构建一个ShellCommandExecutor, 执行 shell 启动命令, 启动脚本....
+     * @param ctx Encapsulates information necessary for launching containers.
+     * @return
+     * @throws IOException
+     * @throws ConfigurationException
+     */
     @Override
     public int launchContainer(ContainerStartContext ctx)
             throws IOException, ConfigurationException {
@@ -262,6 +281,7 @@ public class DefaultContainerExecutor extends ContainerExecutor {
         ContainerId containerId = container.getContainerId();
 
         // create container dirs on all disks
+        // todo 在所有磁盘上创建  container 目录
         String containerIdStr = containerId.toString();
         String appIdStr =
                 containerId.getApplicationAttemptId().
@@ -276,8 +296,9 @@ public class DefaultContainerExecutor extends ContainerExecutor {
         }
 
         // Create the container log-dirs on all disks
+        // todo 在所有硬盘上创建 log 目录
         createContainerLogDirs(appIdStr, containerIdStr, logDirs, user);
-
+        //todo 创建临时文件目录:  ./tmp
         Path tmpDir = new Path(containerWorkDir,
                 YarnConfiguration.DEFAULT_CONTAINER_TEMP_DIR);
         createDir(tmpDir, dirPerm, false, user);
@@ -306,6 +327,7 @@ public class DefaultContainerExecutor extends ContainerExecutor {
         copyFile(nmPrivateContainerScriptPath, launchDst, user);
 
         // Create new local launch wrapper script
+        // todo 创建新的本地启动包装器脚本
         LocalWrapperScriptBuilder sb = getLocalWrapperScriptBuilder(
                 containerIdStr, containerWorkDir);
 
@@ -322,6 +344,7 @@ public class DefaultContainerExecutor extends ContainerExecutor {
 
         Path pidFile = getPidFilePath(containerId);
         if (pidFile != null) {
+            //todo 获取pidFile , 写入启动脚本
             sb.writeLocalWrapperScript(launchDst, pidFile);
         } else {
             LOG.info("Container {} pid file not set. Returning terminated error",
@@ -357,9 +380,11 @@ public class DefaultContainerExecutor extends ContainerExecutor {
                     new File(containerWorkDir.toUri().getPath()),
                     container.getLaunchContext().getEnvironment(),
                     numaCommands);
-
+            //todo containerId 如果存活的话,  启动命令
             if (isContainerActive(containerId)) {
+                // todo ------------- 启动 start ----------------------------------
                 shExec.execute();
+                // todo ------------- 启动  end  ----------------------------------
             } else {
                 LOG.info("Container {} was marked as inactive. "
                         + "Returning terminated error", containerIdStr);

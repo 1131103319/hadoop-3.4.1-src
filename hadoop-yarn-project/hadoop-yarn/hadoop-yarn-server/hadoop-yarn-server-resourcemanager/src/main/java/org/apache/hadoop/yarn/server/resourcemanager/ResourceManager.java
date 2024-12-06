@@ -873,6 +873,7 @@ public class ResourceManager extends CompositeService
             rmContext.setNodesListManager(nodesListManager);
 
             // Initialize the scheduler
+            // todo  ResourceScheduler 调度器的创建,他的子类之一就是FairScheduler
             scheduler = createScheduler();
             scheduler.setRMContext(rmContext);
             addIfService(scheduler);

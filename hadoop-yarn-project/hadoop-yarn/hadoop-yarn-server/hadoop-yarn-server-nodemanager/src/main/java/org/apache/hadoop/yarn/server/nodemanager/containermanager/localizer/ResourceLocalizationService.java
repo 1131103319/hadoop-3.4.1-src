@@ -147,7 +147,19 @@ import org.apache.hadoop.classification.VisibleForTesting;
 import org.apache.hadoop.thirdparty.com.google.common.cache.CacheBuilder;
 import org.apache.hadoop.thirdparty.com.google.common.cache.LoadingCache;
 import org.apache.hadoop.thirdparty.com.google.common.util.concurrent.ThreadFactoryBuilder;
-
+/**
+ * todo 主要是分发container运行需要的所有文件，包括一些lib、token等等。
+    这个过程称为localize，由ResourceLocalizationService类负责。
+    分几步：
+    建相关目录。$local.dir/usercache/$user/filecache，用于暂存用户可见的distributed cache；$local.dir/usercache/$user/appcache/$appid/filecache，
+    用于暂存app可见的distributed cache；$log.dir/$appid/$containerid，用于暂存日志。我这里只列出了最深一级目录，父目录不存在也会新建。对DCE而言，
+    直接用java代码建这些目录。对于LCE，调用container-executor建目录，见上文container-executor的Usage。
+    注意这些目录会在所有磁盘上建（我们的节点一般是12块盘，就建12次），但只有一个会被真正使用。
+    将token文件写到$local.dir/usercache/$user/appcache/$appid目录。这里有bug，无论DCE还是LCE，
+    都会将token文件写到第一个local-dir，所以可能会有竞争，导致后续container启动失败。见YARN-2566、YARN-2623。
+    对于DCE，直接new一个ContainerLocalizer对象，调用runLocalization方法。这个方法的作用是从ResourceLocalizationService处获取要分发的文件的URI，
+    并下载到本地。对于LCE，会单独启动一个JVM进程，通过RPC协议LocalizationProtocol与ResourceLocalizationService通信。功能是一样的。
+ **/
 public class ResourceLocalizationService extends CompositeService
     implements EventHandler<LocalizationEvent>, LocalizationProtocol {
 
