@@ -18,12 +18,6 @@
 
 package org.apache.hadoop.ipc;
 
-import java.io.IOException;
-import java.net.InetSocketAddress;
-import java.util.concurrent.atomic.AtomicBoolean;
-
-import javax.net.SocketFactory;
-
 import org.apache.hadoop.classification.InterfaceStability;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.io.retry.RetryPolicy;
@@ -32,8 +26,20 @@ import org.apache.hadoop.security.UserGroupInformation;
 import org.apache.hadoop.security.token.SecretManager;
 import org.apache.hadoop.security.token.TokenIdentifier;
 
+import javax.net.SocketFactory;
+import java.io.IOException;
+import java.net.InetSocketAddress;
+import java.util.concurrent.atomic.AtomicBoolean;
+
 /** An RPC implementation. */
 @InterfaceStability.Evolving
+/**
+ * todo getServer : Server端 获取RPC.Server的实例.
+ *  *
+ *  * getProxy :  Client 端  获取RPC.Server的实例.
+ *  *
+ *  * getProtocolMetaInfoProxy : 根据给定的connection id 获取ProtocolMetaInfoPB 代理对象.
+ */
 public interface RpcEngine {
 
   /**
@@ -51,6 +57,31 @@ public interface RpcEngine {
    * @throws IOException raised on errors performing I/O.
    * @return ProtocolProxy.
    */
+    /**
+     * todo * 客户端会调用RpcEngine.getProxy()方法获取一个本地接口的代理对 象，
+     *    * 然后在这个代理对象上调用本地接口的方法。
+     *    *
+     *    * getProxy()方法的实现采用了 Java动态代理机制，
+     *    * 客户端调用程序在代理对象上的调用会由一个
+     *    * RpcInvocationHandler(java.lang.reflect.InvocationHandler的子类，
+     *    * 在RpcEngine的 实现类中定义)对象处理，
+     *    * 这个RpcInvocationHandler会将请求序列化
+     *    * (使用 RpcEngine实现类定义的序列化方式)
+     *    * 并调用Client.call()方法将请求发送到远程 服务器。
+     *    * 当远程服务器发回响应信息后，RpcInvocationHandler会将响应信息反 序列化并返回给调用程序，
+     *    * 这一切通过Java动态代理机制对于调用程序是完全透 明的，就像本地调用一样。
+     * @param protocol
+     * @param clientVersion
+     * @param addr
+     * @param ticket
+     * @param conf
+     * @param factory
+     * @param rpcTimeout
+     * @param connectionRetryPolicy
+     * @return
+     * @param <T>
+     * @throws IOException
+     */
   <T> ProtocolProxy<T> getProxy(Class<T> protocol,
                   long clientVersion, InetSocketAddress addr,
                   UserGroupInformation ticket, Configuration conf,
@@ -119,6 +150,25 @@ public interface RpcEngine {
    * @return The Server instance
    * @throws IOException on any error
    */
+    /**
+     * todo       * 该方法用于产生一个RPC Server对象，服务器会启动这个Server对象 监听从客户端发来的请求。
+     *      * 成功从网络接收请求数据后，
+     *      * Server对象会调用 Rpclnvoker(在RpcEngine的实现类中定义)对象处理这个请求。
+     * @param protocol
+     * @param instance
+     * @param bindAddress
+     * @param port
+     * @param numHandlers
+     * @param numReaders
+     * @param queueSizePerHandler
+     * @param verbose
+     * @param conf
+     * @param secretManager
+     * @param portRangeConfig
+     * @param alignmentContext
+     * @return
+     * @throws IOException
+     */
   RPC.Server getServer(Class<?> protocol, Object instance, String bindAddress,
                        int port, int numHandlers, int numReaders,
                        int queueSizePerHandler, boolean verbose,
@@ -136,6 +186,7 @@ public interface RpcEngine {
    * @return Proxy object.
    * @throws IOException raised on errors performing I/O.
    */
+  //todo 根据给定的connection id 获取ProtocolMetaInfoPB 代理对象.
   ProtocolProxy<ProtocolMetaInfoPB> getProtocolMetaInfoProxy(
       ConnectionId connId, Configuration conf, SocketFactory factory)
       throws IOException;

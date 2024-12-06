@@ -86,6 +86,7 @@ import static org.apache.hadoop.ipc.RpcConstants.PING_CALL_ID;
  */
 @Public
 @InterfaceStability.Evolving
+//todo Client类用于实现RPC客户端功能，
 public class Client implements AutoCloseable {
   public static final Logger LOG = LoggerFactory.getLogger(Client.class);
 

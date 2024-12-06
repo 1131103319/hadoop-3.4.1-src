@@ -170,6 +170,33 @@ public interface DatanodeProtocol {
      *                  being slow. Empty report if no slow disks were detected.
      * @throws IOException on error.
      */
+    /**
+     * todo  * Datanode会定期向Namenode发送 心跳
+     *    * dfs.heartbeat.interval配置项配置，默认是3秒
+     *    *
+     *    * 用于心跳汇报的接口，除了携带标识Datanode 身份的DatanodeRegistration对象外，
+     *    * 还包括数据节点上所有存储的状态、缓存的状态、正 在写文件数据的连接数、读写数据使用的线程数等。
+     *    *
+     *    * sendHeartbeat()会返回一个HeartbeatResponse对象，
+     *    * 这个对象包含了Namenode向Datanode发送的名字节点指令，以及当前Namenode的HA状态。
+     *    *
+     *    * 需要特别注意的是，在开 启了HA的HDFS集群中，
+     *    * Datanode是需要同时向Active Namenode以及Standby Namenode发 送心跳的，
+     *    * 不过只有ActiveNamenode才能向Datanode下发名字节点指令。
+     * @param registration
+     * @param reports
+     * @param dnCacheCapacity
+     * @param dnCacheUsed
+     * @param xmitsInProgress
+     * @param xceiverCount
+     * @param failedVolumes
+     * @param volumeFailureSummary
+     * @param requestFullBlockReportLease
+     * @param slowPeers
+     * @param slowDisks
+     * @return
+     * @throws IOException
+     */
     @Idempotent
     public HeartbeatResponse sendHeartbeat(DatanodeRegistration registration,
                                            StorageReport[] reports,
@@ -202,6 +229,29 @@ public interface DatanodeProtocol {
      * @return - the next command for DN to process.
      * @throws IOException
      */
+    /**
+     * todo * Datanode成功向Namenode注册之后，
+     *    * Datanode会通过调用 DatanodeProtocol.blockReport()方法向Namenode上报它管理的所有数据块的信息。
+     *    * 这个方 法需要三个参数:
+     *    *   DatanodeRegistration用于标识当前的Datanode;
+     *    *   poolId用于标识数据块所 在的块池ID;
+     *    *   reports是一个StorageBlockReport对象的数组，每个StorageBlockReport对象都用于记录Datanode上一个存储空间存储的数据块。
+     *    *
+     *    *   这里需要特别注意的是，上报的数据块 是以长整型数组保存的，
+     *    *   每个已经提交的数据块(finalized)以3个长整型来表示，
+     *    *   每个构 建中的数据块(under-construction)以4个长整型来表示。
+     *    *   之所以不使用ExtendedBlock对 象保存上报的数据块，
+     *    *   是因为这样可以减少blockReport()操作所使用的内存，
+     *    *
+     *    *   Namenode接 收到消息时，不需要创建大量的ExtendedBlock对象，
+     *    *   只需要不断地从长整型数组中提取 数据块即可。
+     * @param registration
+     * @param poolId
+     * @param reports
+     * @param context
+     * @return
+     * @throws IOException
+     */
     @Idempotent
     public DatanodeCommand blockReport(DatanodeRegistration registration,
                                        String poolId, StorageBlockReport[] reports,
@@ -221,6 +271,21 @@ public interface DatanodeProtocol {
      * @return The DatanodeCommand.
      * @throws IOException
      */
+    /**
+     * todo    * Namenode接收到blockReport()请求之后，
+     *    * 会根据Datanode上报的数据块存储情况建立 数据块与数据节点之间的对应关系。
+     *    * 同时，Namenode会在blockReport()的响应中携带名字 节点指令，
+     *    * 通知数据节点进行重新注册、发送心跳、备份或者删除Datanode本地磁盘上数 据块副本的操作。
+     *    * 这些名字节点指令都是以DatanodeCommand对象封装的
+     *    *
+     *    * blockReport()方法只在Datanode启动时以及指定间隔时执行一次。
+     *    * 间隔是由 dfs.blockreport.intervalMsec参数配置的，默认是6小时执行一次。
+     * @param registration
+     * @param poolId
+     * @param blockIds
+     * @return
+     * @throws IOException
+     */
     @Idempotent
     public DatanodeCommand cacheReport(DatanodeRegistration registration,
                                        String poolId, List<Long> blockIds) throws IOException;
@@ -235,6 +300,30 @@ public interface DatanodeProtocol {
      * writes a new Block here, or another DataNode copies a Block to
      * this DataNode, it will call blockReceived().
      */
+    /**
+     * todo    * Datanode会定期(默认是5分钟，不可以配置)调用blockReceivedAndDeleted()方法
+     *    * 向 Namenode汇报Datanode新接受的数据块或者删除的数据块。
+     *    *
+     *    * Datanode接受一个数据块，可 能是因为Client写入了新的数据块，
+     *    * 或者从别的Datanode上复制一个数据块到当前 Datanode。
+     *    *
+     *    * Datanode删除一个数据块，则有可能是因为该数据块的副本数量过多，
+     *    * Namenode向当前Datanode下发了删除数据块副本的指令。
+     *    *
+     *    * 我们可以把blockReceivedAndDeleted()方法理解为blockReport()的增量汇报，
+     *    * 这个方法的参数包括
+     *    * DatanodeRegistration对象、
+     *    * 增量汇报数据块所在的块池ID，
+     *    * 以及 StorageReceivedDeletedBlocks对象的数组，
+     *    *
+     *    * 这里的StorageReceived DeletedBlocks对象封装了Datanode的一个数据存储上新添加以及删除的数据块集合。
+     *    *
+     *    * Namenode接受了这个请求 之后，会更新它内存中数据块与数据节点的对应关系。
+     * @param registration
+     * @param poolId
+     * @param rcvdAndDeletedBlocks
+     * @throws IOException
+     */
     @Idempotent
     public void blockReceivedAndDeleted(DatanodeRegistration registration,
                                         String poolId,
@@ -245,11 +334,28 @@ public interface DatanodeProtocol {
      * errorReport() tells the NameNode about something that has gone
      * awry.  Useful for debugging.
      */
+    //todo    * 该方法用于向名字节点上报运行过程中 发生的一些状况，如磁盘不可用等
     @Idempotent
     public void errorReport(DatanodeRegistration registration,
                             int errorCode,
                             String msg) throws IOException;
 
+    /**
+     * todo 这个方法的返回值是一个NamespaceInfo对象，NamespaceInfo对 象会封装当前HDFS集群的命名空间信息，
+     *      * 包括存储系统的布局版本号(layoutversion)、
+     *      * 当前的命名空间的ID(namespaceId)、集群ID(clusterId)、
+     *      * 文件系统的创建时间 (ctime)、构建时的HDFS版本号(buildVersion)、
+     *      * 块池ID(blockpoolId)、当前的软件 版本号(softwareVersion)等。
+     *      *
+     *      * Datanode获取到NamespaceInfo对象后，
+     *      * 就会比较Datanode 当前的HDFS版本号和Namenode的HDFS版本号，
+     *      * 如果Datanode版本与Namenode版本不能 协同工作，则抛出异常，
+     *      * Datanode也就无法注册到该Namenode上。
+     *      * 如果当前Datanode上已 经有了文件存储的目录，
+     *      * 那么Datanode还会检查Datanode存储上的块池ID、文件系统ID以 及集群ID与Namenode返回的是否一致。
+     * @return
+     * @throws IOException
+     */
     @Idempotent
     public NamespaceInfo versionRequest() throws IOException;
 
@@ -257,11 +363,46 @@ public interface DatanodeProtocol {
      * same as {@link org.apache.hadoop.hdfs.protocol.ClientProtocol#reportBadBlocks(LocatedBlock[])}
      * }
      */
+    /**
+     * todo * reportBadBlocks()与ClientProtocol.reportBad.Blocks()方法很类似，
+     *    * Datanode会调用这 个方法向Namenode汇报损坏的数据块。
+     *    *
+     *    * Datanode会在三种情况下调用这个方法:
+     *    *
+     *    * DataBlockScanner线程定期扫描数据节点上存储的数据块， 发现数据块的校验出现错误时;
+     *    *
+     *    * 数据流管道写数据时，  Datanode接受了一个新的数据块， 进行数据块校验操作出现错 误时;
+     *    *
+     *    * 进行数据块复制操作(DataTransfer)，Datanode读取本地存储的数据块时，发现 本地数据块副本的长度小于Namenode记录的长度，
+     *    * 则认为该数据块已经无效，会调用 reportBadBlocks()方法。
+     *    *
+     *    * reportBadBlocks()方法的参数是LocatedBlock对象，
+     *    * 这个对象描述 了出现错误数据块的位置，
+     *    * Namenode收到reportBadBlocks()请求后，
+     *    * 会下发数据块副本删 除指令删除错误的数据块。
+     * @param blocks
+     * @throws IOException
+     */
     @Idempotent
     public void reportBadBlocks(LocatedBlock[] blocks) throws IOException;
 
     /**
      * Commit block synchronization in lease recovery
+     */
+    /**
+     * todo
+     *    * 用于在租约恢复操作时同步数据块的状态。
+     *    * 在租约恢复操作时，主数据节点完成所有租约恢复协调操作后调用 commitBlockSynchronization()方法
+     *    * 同步Datanode和Namenode上数据块的状态，
+     *    * 所以 commitBlockSynchronization()方法包含了大量的参数。
+     * @param block
+     * @param newgenerationstamp
+     * @param newlength
+     * @param closeFile
+     * @param deleteblock
+     * @param newtargets
+     * @param newtargetstorages
+     * @throws IOException
      */
     @Idempotent
     public void commitBlockSynchronization(ExtendedBlock block,

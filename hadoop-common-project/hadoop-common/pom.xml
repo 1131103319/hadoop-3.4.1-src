@@ -410,6 +410,10 @@
       <artifactId>lz4-java</artifactId>
       <scope>provided</scope>
     </dependency>
+      <dependency>
+          <groupId>com.google.protobuf</groupId>
+          <artifactId>protobuf-java</artifactId>
+      </dependency>
   </dependencies>
 
   <build>
@@ -549,7 +553,8 @@
         <artifactId>maven-surefire-plugin</artifactId>
         <configuration>
           <systemPropertyVariables>
-            <runningWithNative>${runningWithNative}</runningWithNative>
+            <!--suppress UnresolvedMavenProperty -->
+              <runningWithNative>${runningWithNative}</runningWithNative>
           </systemPropertyVariables>
           <properties>
             <property>
@@ -758,8 +763,10 @@
                     <REQUIRE_ISAL>${require.isal} </REQUIRE_ISAL>
                     <CUSTOM_ISAL_PREFIX>${isal.prefix} </CUSTOM_ISAL_PREFIX>
                     <CUSTOM_ISAL_LIB>${isal.lib} </CUSTOM_ISAL_LIB>
-                    <REQUIRE_PMDK>${require.pmdk}</REQUIRE_PMDK>
-                    <CUSTOM_PMDK_LIB>${pmdk.lib}</CUSTOM_PMDK_LIB>
+                    <!--suppress UnresolvedMavenProperty -->
+                      <REQUIRE_PMDK>${require.pmdk}</REQUIRE_PMDK>
+                    <!--suppress UnresolvedMavenProperty -->
+                      <CUSTOM_PMDK_LIB>${pmdk.lib}</CUSTOM_PMDK_LIB>
                     <REQUIRE_OPENSSL>${require.openssl} </REQUIRE_OPENSSL>
                     <CUSTOM_OPENSSL_PREFIX>${openssl.prefix} </CUSTOM_OPENSSL_PREFIX>
                     <CUSTOM_OPENSSL_LIB>${openssl.lib} </CUSTOM_OPENSSL_LIB>
@@ -788,7 +795,8 @@
                   <results>${project.build.directory}/native-results</results>
                   <skipIfMissing>true</skipIfMissing>
                   <env>
-                    <LD_LIBRARY_PATH>${LD_LIBRARY_PATH}:${isal.lib}:${isal.prefix}:/usr/lib</LD_LIBRARY_PATH>
+                    <!--suppress UnresolvedMavenProperty -->
+                      <LD_LIBRARY_PATH>${LD_LIBRARY_PATH}:${isal.lib}:${isal.prefix}:/usr/lib</LD_LIBRARY_PATH>
                   </env>
                 </configuration>
               </execution>
@@ -868,7 +876,8 @@
                     <condition property="skip.platformToolsetDetection.negated" value="false" else="true">
                       <isset property="use.platformToolsetVersion"/>
                     </condition>
-                    <echo>Skip platform toolset version detection = ${skip.platformToolsetDetection}</echo>
+                    <!--suppress UnresolvedMavenProperty -->
+                      <echo>Skip platform toolset version detection = ${skip.platformToolsetDetection}</echo>
                   </target>
                 </configuration>
               </execution>
@@ -885,7 +894,8 @@
                   <goal>exec</goal>
                 </goals>
                 <configuration>
-                  <skip>${skip.platformToolsetDetection}</skip>
+                  <!--suppress UnresolvedMavenProperty -->
+                    <skip>${skip.platformToolsetDetection}</skip>
                   <executable>${basedir}\..\..\dev-support\bin\win-vs-upgrade.cmd</executable>
                   <arguments>
                     <argument>${basedir}\src\main\winutils</argument>
@@ -900,7 +910,8 @@
                   <goal>exec</goal>
                 </goals>
                 <configuration>
-                  <skip>${skip.platformToolsetDetection}</skip>
+                  <!--suppress UnresolvedMavenProperty -->
+                    <skip>${skip.platformToolsetDetection}</skip>
                   <executable>msbuild</executable>
                   <arguments>
                     <argument>${basedir}/src/main/winutils/winutils.sln</argument>
@@ -920,7 +931,8 @@
                   <goal>exec</goal>
                 </goals>
                 <configuration>
-                  <skip>${skip.platformToolsetDetection.negated}</skip>
+                    <!--suppress UnresolvedMavenProperty -->
+                    <skip>${skip.platformToolsetDetection.negated}</skip>
                   <executable>msbuild</executable>
                   <arguments>
                     <argument>${basedir}/src/main/winutils/winutils.sln</argument>
@@ -930,7 +942,8 @@
                     <argument>/p:IntermediateOutputPath=${project.build.directory}/winutils/</argument>
                     <argument>/p:WsceConfigDir=${wsce.config.dir}</argument>
                     <argument>/p:WsceConfigFile=${wsce.config.file}</argument>
-                    <argument>/p:PlatformToolset=${use.platformToolsetVersion}</argument>
+                    <!--suppress UnresolvedMavenProperty -->
+                      <argument>/p:PlatformToolset=${use.platformToolsetVersion}</argument>
                   </arguments>
                 </configuration>
               </execution>
@@ -941,7 +954,8 @@
                   <goal>exec</goal>
                 </goals>
                 <configuration>
-                  <skip>${skip.platformToolsetDetection}</skip>
+                  <!--suppress UnresolvedMavenProperty -->
+                    <skip>${skip.platformToolsetDetection}</skip>
                   <executable>${basedir}\..\..\dev-support\bin\win-vs-upgrade.cmd</executable>
                   <arguments>
                     <argument>${basedir}\src\main\native</argument>
@@ -956,7 +970,8 @@
                   <goal>exec</goal>
                 </goals>
                 <configuration>
-                  <skip>${skip.platformToolsetDetection}</skip>
+                  <!--suppress UnresolvedMavenProperty -->
+                    <skip>${skip.platformToolsetDetection}</skip>
                   <executable>msbuild</executable>
                   <arguments>
                     <argument>${basedir}/src/main/native/native.sln</argument>
@@ -984,7 +999,8 @@
                   <goal>exec</goal>
                 </goals>
                 <configuration>
-                  <skip>${skip.platformToolsetDetection.negated}</skip>
+                  <!--suppress UnresolvedMavenProperty -->
+                    <skip>${skip.platformToolsetDetection.negated}</skip>
                   <executable>msbuild</executable>
                   <arguments>
                     <argument>${basedir}/src/main/native/native.sln</argument>
@@ -1002,7 +1018,8 @@
                     <argument>/p:RequireIsal=${require.isal}</argument>
                     <argument>/p:CustomIsalPrefix=${isal.prefix}</argument>
                     <argument>/p:CustomIsalLib=${isal.lib}</argument>
-                    <argument>/p:PlatformToolset=${use.platformToolsetVersion}</argument>
+                    <!--suppress UnresolvedMavenProperty -->
+                      <argument>/p:PlatformToolset=${use.platformToolsetVersion}</argument>
                   </arguments>
                 </configuration>
               </execution>
