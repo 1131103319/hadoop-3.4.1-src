@@ -18,15 +18,15 @@
 
 package org.apache.hadoop.service;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-
 import org.apache.hadoop.classification.InterfaceAudience.Public;
 import org.apache.hadoop.classification.InterfaceStability.Evolving;
 import org.apache.hadoop.conf.Configuration;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 
 /**
  * Composition of services.
@@ -113,14 +113,16 @@ public class CompositeService extends AbstractService {
   }
 
   protected void serviceStart() throws Exception {
-    List<Service> services = getServices();
+      //todo  获取所有的服务 其实就是一个 ArrayList
+      List<Service> services = getServices();
     if (LOG.isDebugEnabled()) {
       LOG.debug(getName() + ": starting services, size=" + services.size());
     }
     for (Service service : services) {
       // start the service. If this fails that service
       // will be stopped and an exception raised
-      service.start();
+        //todo 循环启动
+        service.start();
     }
     super.serviceStart();
   }

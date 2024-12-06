@@ -18,21 +18,16 @@
 
 package org.apache.hadoop.service;
 
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.concurrent.atomic.AtomicBoolean;
-
 import org.apache.hadoop.classification.InterfaceAudience.Public;
 import org.apache.hadoop.classification.InterfaceStability.Evolving;
-import org.apache.hadoop.conf.Configuration;
-
 import org.apache.hadoop.classification.VisibleForTesting;
+import org.apache.hadoop.conf.Configuration;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.io.IOException;
+import java.util.*;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
  * This is the base implementation class for services.
@@ -149,8 +144,12 @@ public abstract class AbstractService implements Service {
    * @throws ServiceStateException if the configuration was null,
    * the state change not permitted, or something else went wrong
    */
+  //todo 重写service类，判断服务状态是否为指定状态
+  //todo 调用serviceinit方法
+  //todo 该方法只有第一次调用生效
+  //todo
   @Override
-  public void init(Configuration conf) {
+  public void init(Configuration conf) {//todo core-default.xml , core-site.xml , yarn-default.xml , yarn-site.xml
     if (conf == null) {
       throw new ServiceStateException("Cannot initialize service "
                                       + getName() + ": null configuration");
@@ -162,10 +161,13 @@ public abstract class AbstractService implements Service {
       if (enterState(STATE.INITED) != STATE.INITED) {
         setConfig(conf);
         try {
+            //todo 调用serviceinit
           serviceInit(config);
+          //todo 初始化完成，通知其他用户
           if (isInState(STATE.INITED)) {
             //if the service ended up here during init,
             //notify the listeners
+              //todo 通过监听器通知
             notifyListeners();
           }
         } catch (Exception e) {
@@ -182,6 +184,9 @@ public abstract class AbstractService implements Service {
    * @throws ServiceStateException if the current service state does not permit
    * this action
    */
+
+// todo  重写自Service类，会调用serviceStart方法
+// todo  当前服务状态不允许start时，会抛出ServiceStateException
   @Override
   public void start() {
     if (isInState(STATE.STARTED)) {
@@ -192,7 +197,8 @@ public abstract class AbstractService implements Service {
       if (stateModel.enterState(STATE.STARTED) != STATE.STARTED) {
         try {
           startTime = System.currentTimeMillis();
-          serviceStart();
+            //todo 启动服务
+            serviceStart();
           if (isInState(STATE.STARTED)) {
             //if the service started (and isn't now in a later state), notify
             LOG.debug("Service {} is started", getName());

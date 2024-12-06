@@ -18,33 +18,15 @@
 
 package org.apache.hadoop.yarn.server.nodemanager;
 
-import java.io.File;
-import java.io.IOException;
-import java.io.OutputStream;
-import java.io.PrintStream;
-import java.net.InetAddress;
-import java.net.UnknownHostException;
-import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.LinkedHashSet;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentMap;
-import java.util.concurrent.locks.ReentrantReadWriteLock;
-
-import org.apache.hadoop.hdfs.protocol.datatransfer.IOStreamPair;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import org.apache.hadoop.classification.VisibleForTesting;
 import org.apache.commons.io.FileUtils;
+import org.apache.hadoop.classification.VisibleForTesting;
 import org.apache.hadoop.conf.Configurable;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.fs.permission.FsPermission;
+import org.apache.hadoop.hdfs.protocol.datatransfer.IOStreamPair;
+import org.apache.hadoop.util.Shell;
+import org.apache.hadoop.util.StringUtils;
 import org.apache.hadoop.yarn.api.records.ContainerId;
 import org.apache.hadoop.yarn.api.records.LocalResource;
 import org.apache.hadoop.yarn.api.records.Resource;
@@ -55,19 +37,23 @@ import org.apache.hadoop.yarn.server.nodemanager.containermanager.container.Cont
 import org.apache.hadoop.yarn.server.nodemanager.containermanager.launcher.ContainerLaunch;
 import org.apache.hadoop.yarn.server.nodemanager.containermanager.launcher.ContainerLaunch.ShellScriptBuilder;
 import org.apache.hadoop.yarn.server.nodemanager.containermanager.runtime.ContainerExecutionException;
-import org.apache.hadoop.yarn.server.nodemanager.executor.ContainerPrepareContext;
+import org.apache.hadoop.yarn.server.nodemanager.executor.*;
 import org.apache.hadoop.yarn.server.nodemanager.util.NodeManagerHardwareUtils;
-import org.apache.hadoop.yarn.server.nodemanager.executor.ContainerExecContext;
-import org.apache.hadoop.yarn.server.nodemanager.executor.ContainerLivenessContext;
-import org.apache.hadoop.yarn.server.nodemanager.executor.ContainerReacquisitionContext;
-import org.apache.hadoop.yarn.server.nodemanager.executor.ContainerReapContext;
-import org.apache.hadoop.yarn.server.nodemanager.executor.ContainerSignalContext;
-import org.apache.hadoop.yarn.server.nodemanager.executor.ContainerStartContext;
-import org.apache.hadoop.yarn.server.nodemanager.executor.DeletionAsUserContext;
-import org.apache.hadoop.yarn.server.nodemanager.executor.LocalizerStartContext;
 import org.apache.hadoop.yarn.server.nodemanager.util.ProcessIdFileReader;
-import org.apache.hadoop.util.Shell;
-import org.apache.hadoop.util.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.io.File;
+import java.io.IOException;
+import java.io.OutputStream;
+import java.io.PrintStream;
+import java.net.InetAddress;
+import java.net.UnknownHostException;
+import java.nio.charset.StandardCharsets;
+import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 import static org.apache.hadoop.yarn.server.nodemanager.containermanager.launcher.ContainerLaunch.CONTAINER_PRE_LAUNCH_STDERR;
 import static org.apache.hadoop.yarn.server.nodemanager.containermanager.launcher.ContainerLaunch.CONTAINER_PRE_LAUNCH_STDOUT;
@@ -128,6 +114,7 @@ public abstract class ContainerExecutor implements Configurable {
    * @param nmContext Context of NM
    * @throws IOException if initialization fails
    */
+  //todo 初始化
   public abstract void init(Context nmContext) throws IOException;
 
   public void start() {}
@@ -172,6 +159,7 @@ public abstract class ContainerExecutor implements Configurable {
    * @throws IOException for most application init failures
    * @throws InterruptedException if application init thread is halted by NM
    */
+  //todo startLocalizer: 为此应用程序中的容器准备执行环境。
   public abstract void startLocalizer(LocalizerStartContext ctx)
     throws IOException, InterruptedException;
 
@@ -180,6 +168,7 @@ public abstract class ContainerExecutor implements Configurable {
    * @param ctx Encapsulates information necessary for launching containers.
    * @throws IOException if errors occur during container preparation
    */
+  //todo prepareContainer : 在编写启动环境之前准备容器。
   public void prepareContainer(ContainerPrepareContext ctx) throws
       IOException{
   }
@@ -192,6 +181,7 @@ public abstract class ContainerExecutor implements Configurable {
    * @throws IOException if the container launch fails
    * @throws ConfigurationException if config error was found
    */
+  //todo launchContainer: 在节点上启动容器。 这是一个阻塞调用，仅在容器退出时返回。
   public abstract int launchContainer(ContainerStartContext ctx) throws
       IOException, ConfigurationException;
 
@@ -203,6 +193,7 @@ public abstract class ContainerExecutor implements Configurable {
    * @throws IOException if the container relaunch fails
    * @throws ConfigurationException if config error was found
    */
+  //todo relaunchContainer: 重新启动节点上的容器。 这是一个阻塞调用，仅在容器退出时返回。
   public abstract int relaunchContainer(ContainerStartContext ctx) throws
       IOException, ConfigurationException;
 
@@ -213,6 +204,7 @@ public abstract class ContainerExecutor implements Configurable {
    * @return returns true if the operation succeeded
    * @throws IOException if signaling the container fails
    */
+  //todo signalContainer: 具有指定信号的信号容器。
   public abstract boolean signalContainer(ContainerSignalContext ctx)
       throws IOException;
 
@@ -263,6 +255,7 @@ public abstract class ContainerExecutor implements Configurable {
    * @throws IOException if there is a failure while checking the container
    * status
    */
+  //todo isContainerAlive: 检查容器是否存活
   public abstract boolean isContainerAlive(ContainerLivenessContext ctx)
       throws IOException;
 
@@ -295,6 +288,7 @@ public abstract class ContainerExecutor implements Configurable {
    * @throws InterruptedException if interrupted while waiting to reacquire
    * the container
    */
+  //todo reacquireContainer: 恢复已存在的容器。 这是一个阻塞调用，仅在容器退出时返回。 请注意，在此调用之前必须已激活容器。
   public int reacquireContainer(ContainerReacquisitionContext ctx)
       throws IOException, InterruptedException {
     Container container = ctx.getContainer();
@@ -376,6 +370,7 @@ public abstract class ContainerExecutor implements Configurable {
    * @throws IOException if any errors happened writing to the OutputStream,
    * while creating symlinks
    */
+  //todo writeLaunchEnv : 写入启动环境 默认容器启动脚本。
   public void writeLaunchEnv(OutputStream out, Map<String, String> environment,
       Map<Path, List<String>> resources, List<String> command, Path logDir,
       String user, LinkedHashSet<String> nmVars) throws IOException {
@@ -485,6 +480,7 @@ public abstract class ContainerExecutor implements Configurable {
    * @param dir the target directory
    * @return a list of files in the target directory
    */
+  //todo readDirAsUser: 读取用户目录
   protected File[] readDirAsUser(String user, Path dir) {
     return new File(dir.toString()).listFiles();
   }
@@ -533,6 +529,7 @@ public abstract class ContainerExecutor implements Configurable {
   /**
    * The constants for the signals.
    */
+  //todo enum Signal : 信号枚举
   public enum Signal {
     NULL(0, "NULL"),
     QUIT(3, "SIGQUIT"),
@@ -599,6 +596,7 @@ public abstract class ContainerExecutor implements Configurable {
    * @param config the configuration
    * @return the command line to execute
    */
+  //todo getRunCommand: 获取运行命令
   protected String[] getRunCommand(String command, String groupId,
       String userName, Path pidFile, Configuration config) {
     return getRunCommand(command, groupId, userName, pidFile, config, null);
@@ -728,6 +726,7 @@ public abstract class ContainerExecutor implements Configurable {
    * @param containerId the target container's ID
    * @return true if the container is active
    */
+  //todo isContainerActive: 容器是否存活
   protected boolean isContainerActive(ContainerId containerId) {
     return this.pidFiles.containsKey(containerId);
   }
@@ -744,6 +743,7 @@ public abstract class ContainerExecutor implements Configurable {
    * @param pidFilePath the path where the executor should write the PID
    * of the launched process
    */
+  //todo activateContainer: 标记容器为活跃状态
   public void activateContainer(ContainerId containerId, Path pidFilePath) {
     this.pidFiles.put(containerId, pidFilePath);
   }
@@ -785,6 +785,7 @@ public abstract class ContainerExecutor implements Configurable {
    * @param container
    *          the Container
    */
+  //todo pauseContainer: 暂停容器,默认实现是 kill, 可以自定义
   public void pauseContainer(Container container) {
     LOG.warn("{} doesn't support pausing.", container.getContainerId());
     throw new UnsupportedOperationException();
@@ -830,6 +831,7 @@ public abstract class ContainerExecutor implements Configurable {
    * @return the process ID of the container if it has already launched,
    * or null otherwise
    */
+  //todo getProcessId: 根据容器ID获取进程ID
   public String getProcessId(ContainerId containerID) {
     String pid = null;
     Path pidFile = pidFiles.get(containerID);
@@ -850,6 +852,7 @@ public abstract class ContainerExecutor implements Configurable {
    * This class will signal a target container after a specified delay.
    * @see #signalContainer
    */
+  //todo DelayedProcessKiller : 根据信号, 杀死进程的类.  (这个是杀死进程的类,具体情况还没想清楚.)
   public static class DelayedProcessKiller extends Thread {
     private final Container container;
     private final String user;
