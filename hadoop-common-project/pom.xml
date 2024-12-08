@@ -39,7 +39,13 @@
     <module>hadoop-kms</module>
     <module>hadoop-registry</module>
   </modules>
-
+<dependencies>
+    <dependency>
+        <groupId>com.google.protobuf</groupId>
+        <artifactId>protobuf-java</artifactId>
+        <version>2.5.0</version>
+    </dependency>
+</dependencies>
   <build>
     <plugins>
       <plugin>
