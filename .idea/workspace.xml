@@ -4,20 +4,13 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="ccd4fc30-3b96-423a-b50f-8e7e2dce30bf" name="Changes" comment="">
-      <change afterPath="$PROJECT_DIR$/hadoop-common-project/hadoop-common/src/main/java/org/apache/hadoop/mytest_rpc/test2/CustomProtocol.proto" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/hadoop-common-project/hadoop-common/src/main/java/org/apache/hadoop/mytest_rpc/test2/CustomProtos.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/hadoop-common-project/hadoop-common/src/main/java/org/apache/hadoop/mytest_rpc/test2/MetaInfoProtocol.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/hadoop-common-project/hadoop-common/src/main/java/org/apache/hadoop/mytest_rpc/test2/MetaInfoServer.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/hadoop-common-project/hadoop-common/src/main/java/org/apache/hadoop/mytest_rpc/test2/client.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/hadoop-common-project/hadoop-common/src/main/java/org/apache/hadoop/mytest_rpc/test2/server.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/.gitignore" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/inspectionProfiles/Project_Default.xml" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/jsLinters/jshint.xml" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/vcs.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/vcs.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/hadoop-common-project/hadoop-common/src/main/java/org/apache/hadoop/ipc/Server.java" beforeDir="false" afterPath="$PROJECT_DIR$/hadoop-common-project/hadoop-common/src/main/java/org/apache/hadoop/ipc/Server.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/hadoop-common-project/hadoop-common/src/main/java/org/apache/hadoop/rpc/protobuf/CustomProtos.java" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/hadoop-common-project/pom.xml" beforeDir="false" afterPath="$PROJECT_DIR$/hadoop-common-project/pom.xml" afterDir="false" />
+    <list default="true" id="ccd4fc30-3b96-423a-b50f-8e7e2dce30bf" name="Changes" comment="源码">
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/hadoop-common-project/hadoop-common/src/main/java/org/apache/hadoop/mytest_rpc/test2/CustomProtos.java" beforeDir="false" afterPath="$PROJECT_DIR$/hadoop-common-project/hadoop-common/src/main/java/org/apache/hadoop/mytest_rpc/test2/CustomProtos.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/hadoop-common-project/hadoop-common/src/main/java/org/apache/hadoop/mytest_rpc/test2/MetaInfoProtocol.java" beforeDir="false" afterPath="$PROJECT_DIR$/hadoop-common-project/hadoop-common/src/main/java/org/apache/hadoop/mytest_rpc/test2/MetaInfoProtocol.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/hadoop-common-project/hadoop-common/src/main/java/org/apache/hadoop/mytest_rpc/test2/MetaInfoServer.java" beforeDir="false" afterPath="$PROJECT_DIR$/hadoop-common-project/hadoop-common/src/main/java/org/apache/hadoop/mytest_rpc/test2/MetaInfoServer.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/hadoop-common-project/hadoop-common/src/main/java/org/apache/hadoop/mytest_rpc/test2/client.java" beforeDir="false" afterPath="$PROJECT_DIR$/hadoop-common-project/hadoop-common/src/main/java/org/apache/hadoop/mytest_rpc/test2/Client.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/hadoop-common-project/hadoop-common/src/main/java/org/apache/hadoop/mytest_rpc/test2/server.java" beforeDir="false" afterPath="$PROJECT_DIR$/hadoop-common-project/hadoop-common/src/main/java/org/apache/hadoop/mytest_rpc/test2/Server.java" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -31,18 +24,18 @@
   <component name="Git.Settings">
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
   </component>
-  <component name="GitHubPullRequestSearchHistory"><![CDATA[{
-  "lastFilter": {
-    "state": "OPEN",
-    "assignee": "1131103319"
+  <component name="GitHubPullRequestSearchHistory">{
+  &quot;lastFilter&quot;: {
+    &quot;state&quot;: &quot;OPEN&quot;,
+    &quot;assignee&quot;: &quot;1131103319&quot;
   }
-}]]></component>
-  <component name="GithubPullRequestsUISettings"><![CDATA[{
-  "selectedUrlAndAccountId": {
-    "url": "https://github.com/1131103319/hadoop-3.4.1-src.git",
-    "accountId": "b5178f2d-52cc-43ab-a0ad-60a117f887e6"
+}</component>
+  <component name="GithubPullRequestsUISettings">{
+  &quot;selectedUrlAndAccountId&quot;: {
+    &quot;url&quot;: &quot;https://github.com/1131103319/hadoop-3.4.1-src.git&quot;,
+    &quot;accountId&quot;: &quot;b5178f2d-52cc-43ab-a0ad-60a117f887e6&quot;
   }
-}]]></component>
+}</component>
   <component name="MacroExpansionManager">
     <option name="directoryName" value="u0awxd5z" />
   </component>
@@ -56,24 +49,28 @@
       </MavenGeneralSettings>
     </option>
   </component>
-  <component name="ProjectColorInfo"><![CDATA[{
-  "associatedIndex": 4
-}]]></component>
+  <component name="ProjectColorInfo">{
+  &quot;associatedIndex&quot;: 4
+}</component>
   <component name="ProjectId" id="2pufAWLOTgV8CDtqx1jyCqMRnMG" />
   <component name="ProjectViewState">
     <option name="showLibraryContents" value="true" />
   </component>
   <component name="PropertiesComponent"><![CDATA[{
   "keyToString": {
+    "Application.Client.executor": "Run",
+    "Application.Server.executor": "Run",
     "RunOnceActivity.ShowReadmeOnStart": "true",
     "RunOnceActivity.git.unshallow": "true",
     "git-widget-placeholder": "main",
     "kotlin-language-version-configured": "true",
+    "last_opened_file_path": "/Users/wohaocai/IdeaProjects/hadoop-3.4.1-src/hadoop-common-project/hadoop-common/src/main/java/org/apache/hadoop/mytest_rpc/test2",
     "node.js.detected.package.eslint": "true",
     "node.js.detected.package.tslint": "true",
     "node.js.selected.package.eslint": "(autodetect)",
     "node.js.selected.package.tslint": "(autodetect)",
     "nodejs_package_manager_path": "npm",
+    "org.rust.cargo.project.model.impl.CargoExternalSystemProjectAware.subscribe.first.balloon": "",
     "org.rust.first.attach.projects": "true",
     "project.structure.last.edited": "Problems",
     "project.structure.proportion": "0.0",
@@ -82,6 +79,45 @@
     "vue.rearranger.settings.migration": "true"
   }
 }]]></component>
+  <component name="RecentsManager">
+    <key name="CopyFile.RECENT_KEYS">
+      <recent name="$PROJECT_DIR$/hadoop-common-project/hadoop-common/src/main/java/org/apache/hadoop/mytest_rpc/test2" />
+    </key>
+  </component>
+  <component name="RunManager" selected="Application.Client">
+    <configuration name="Client" type="Application" factoryName="Application" temporary="true" nameIsGenerated="true">
+      <option name="MAIN_CLASS_NAME" value="org.apache.hadoop.mytest_rpc.test2.Client" />
+      <module name="hadoop-common" />
+      <extension name="coverage">
+        <pattern>
+          <option name="PATTERN" value="org.apache.hadoop.mytest_rpc.test2.*" />
+          <option name="ENABLED" value="true" />
+        </pattern>
+      </extension>
+      <method v="2">
+        <option name="Make" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="Server" type="Application" factoryName="Application" temporary="true" nameIsGenerated="true">
+      <option name="MAIN_CLASS_NAME" value="org.apache.hadoop.mytest_rpc.test2.Server" />
+      <module name="hadoop-common" />
+      <extension name="coverage">
+        <pattern>
+          <option name="PATTERN" value="org.apache.hadoop.mytest_rpc.test2.*" />
+          <option name="ENABLED" value="true" />
+        </pattern>
+      </extension>
+      <method v="2">
+        <option name="Make" enabled="true" />
+      </method>
+    </configuration>
+    <recent_temporary>
+      <list>
+        <item itemvalue="Application.Client" />
+        <item itemvalue="Application.Server" />
+      </list>
+    </recent_temporary>
+  </component>
   <component name="RustProjectSettings">
     <option name="toolchainHomeDirectory" value="$USER_HOME$/.cargo/bin" />
   </component>
@@ -101,11 +137,25 @@
       <option name="number" value="Default" />
       <option name="presentableId" value="Default" />
       <updated>1733620738511</updated>
-      <workItem from="1733620739709" duration="2059000" />
+      <workItem from="1733620739709" duration="4588000" />
+      <workItem from="1733708542250" duration="379000" />
     </task>
+    <task id="LOCAL-00001" summary="源码">
+      <option name="closed" value="true" />
+      <created>1733667774131</created>
+      <option name="number" value="00001" />
+      <option name="presentableId" value="LOCAL-00001" />
+      <option name="project" value="LOCAL" />
+      <updated>1733667774131</updated>
+    </task>
+    <option name="localTasksCounter" value="2" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
     <option name="version" value="3" />
+  </component>
+  <component name="VcsManagerConfiguration">
+    <MESSAGE value="源码" />
+    <option name="LAST_COMMIT_MESSAGE" value="源码" />
   </component>
 </project>
