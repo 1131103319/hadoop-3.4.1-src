@@ -179,12 +179,12 @@ public class DistributedFileSystem extends FileSystem
   public void initialize(URI uri, Configuration conf) throws IOException {
     super.initialize(uri, conf);
     setConf(conf);
-
+    //todo 获取主机
     String host = uri.getHost();
     if (host == null) {
       throw new IOException("Incomplete HDFS URI, no host: "+ uri);
     }
-
+    //todo 初始化客户端
     initDFSClient(uri, conf);
     this.uri = URI.create(uri.getScheme()+"://"+uri.getAuthority());
     this.workingDir = getHomeDirectory();

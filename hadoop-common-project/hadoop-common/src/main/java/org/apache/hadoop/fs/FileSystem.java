@@ -17,38 +17,9 @@
  */
 package org.apache.hadoop.fs;
 
-import javax.annotation.Nonnull;
-import java.io.Closeable;
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.lang.ref.WeakReference;
-import java.lang.ref.ReferenceQueue;
-import java.net.URI;
-import java.net.URISyntaxException;
-import java.security.PrivilegedExceptionAction;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.EnumSet;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.IdentityHashMap;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.NoSuchElementException;
-import java.util.Optional;
-import java.util.ServiceConfigurationError;
-import java.util.ServiceLoader;
-import java.util.Set;
-import java.util.Stack;
-import java.util.TreeSet;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.Semaphore;
-import java.util.concurrent.atomic.AtomicLong;
-
 import org.apache.hadoop.classification.InterfaceAudience;
 import org.apache.hadoop.classification.InterfaceStability;
+import org.apache.hadoop.classification.VisibleForTesting;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.conf.Configured;
 import org.apache.hadoop.fs.GlobalStorageStatistics.StorageStatisticsProvider;
@@ -59,11 +30,7 @@ import org.apache.hadoop.fs.impl.AbstractFSBuilderImpl;
 import org.apache.hadoop.fs.impl.DefaultBulkDeleteOperation;
 import org.apache.hadoop.fs.impl.FutureDataInputStreamBuilderImpl;
 import org.apache.hadoop.fs.impl.OpenFileParameters;
-import org.apache.hadoop.fs.permission.AclEntry;
-import org.apache.hadoop.fs.permission.AclStatus;
-import org.apache.hadoop.fs.permission.FsAction;
-import org.apache.hadoop.fs.permission.FsCreateModes;
-import org.apache.hadoop.fs.permission.FsPermission;
+import org.apache.hadoop.fs.permission.*;
 import org.apache.hadoop.io.IOUtils;
 import org.apache.hadoop.io.MultipleIOException;
 import org.apache.hadoop.net.NetUtils;
@@ -71,27 +38,32 @@ import org.apache.hadoop.security.AccessControlException;
 import org.apache.hadoop.security.Credentials;
 import org.apache.hadoop.security.SecurityUtil;
 import org.apache.hadoop.security.UserGroupInformation;
-import org.apache.hadoop.security.token.Token;
 import org.apache.hadoop.security.token.DelegationTokenIssuer;
-import org.apache.hadoop.util.ClassUtil;
-import org.apache.hadoop.util.DataChecksum;
-import org.apache.hadoop.util.DurationInfo;
-import org.apache.hadoop.util.LambdaUtils;
-import org.apache.hadoop.util.Progressable;
-import org.apache.hadoop.util.ReflectionUtils;
-import org.apache.hadoop.util.ShutdownHookManager;
-import org.apache.hadoop.util.StringUtils;
-import org.apache.hadoop.tracing.Tracer;
+import org.apache.hadoop.security.token.Token;
 import org.apache.hadoop.tracing.TraceScope;
-import org.apache.hadoop.util.Preconditions;
-import org.apache.hadoop.classification.VisibleForTesting;
+import org.apache.hadoop.tracing.Tracer;
+import org.apache.hadoop.util.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import static org.apache.hadoop.fs.Options.OpenFileOptions.FS_OPTION_OPENFILE_BUFFER_SIZE;
-import static org.apache.hadoop.util.Preconditions.checkArgument;
+import javax.annotation.Nonnull;
+import java.io.Closeable;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.lang.ref.ReferenceQueue;
+import java.lang.ref.WeakReference;
+import java.net.URI;
+import java.net.URISyntaxException;
+import java.security.PrivilegedExceptionAction;
+import java.util.*;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.Semaphore;
+import java.util.concurrent.atomic.AtomicLong;
+
 import static org.apache.hadoop.fs.CommonConfigurationKeysPublic.*;
+import static org.apache.hadoop.fs.Options.OpenFileOptions.FS_OPTION_OPENFILE_BUFFER_SIZE;
 import static org.apache.hadoop.fs.impl.PathCapabilitiesSupport.validatePathCapabilityArgs;
+import static org.apache.hadoop.util.Preconditions.checkArgument;
 
 /****************************************************************
  * An abstract base class for a fairly generic filesystem.  It
@@ -533,11 +505,13 @@ public abstract class FileSystem extends Configured
    * @return filesystem instance.
    * @throws IOException if the FileSystem cannot be instantiated.
    */
+  //todo 默认配置走的缓存,如果设置不走缓存则自动创建一个走的就是: createFileSystem 方法
   public static FileSystem get(URI uri, Configuration conf) throws IOException {
     String scheme = uri.getScheme();
     String authority = uri.getAuthority();
 
     if (scheme == null && authority == null) {     // use default FS
+        //todo 使用默认的fs
       return get(conf);
     }
 
@@ -3564,6 +3538,7 @@ public abstract class FileSystem extends Configured
     LOGGER.debug("Looking for FS supporting {}", scheme);
     Class<? extends FileSystem> clazz = null;
     if (conf != null) {
+        //todo             // 这里的 property 为:   "fs.hdfs.impl"
       String property = "fs." + scheme + ".impl";
       LOGGER.debug("looking for configuration option {}", property);
       clazz = (Class<? extends FileSystem>) conf.getClass(
@@ -3608,10 +3583,14 @@ public abstract class FileSystem extends Configured
         DurationInfo ignored =
             new DurationInfo(LOGGER, false, "Creating FS %s", uri)) {
       scope.addKVAnnotation("scheme", uri.getScheme());
+      //todo    //根据配置获取需要加载的FileSystem实现类
       Class<? extends FileSystem> clazz =
           getFileSystemClass(uri.getScheme(), conf);
+      //todo             //实例化配置 FileSystem
+        //todo hdfs 对应的实现类为:   org.apache.hadoop.hdfs.DistributedFileSystem
       FileSystem fs = ReflectionUtils.newInstance(clazz, conf);
       try {
+          //todo             // 对FileSystem 进行初始化
         fs.initialize(uri, conf);
       } catch (IOException | RuntimeException e) {
         // exception raised during initialization.
@@ -3713,6 +3692,7 @@ public abstract class FileSystem extends Configured
           return fs;
         }
         // create the filesystem
+          //todo 创建一个filesystem
         fs = createFileSystem(uri, conf);
         final long timeout = conf.getTimeDuration(SERVICE_SHUTDOWN_TIMEOUT,
             SERVICE_SHUTDOWN_TIMEOUT_DEFAULT,

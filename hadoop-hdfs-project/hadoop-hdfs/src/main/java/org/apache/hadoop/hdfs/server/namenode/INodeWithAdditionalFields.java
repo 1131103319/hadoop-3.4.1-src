@@ -35,6 +35,9 @@ public abstract class INodeWithAdditionalFields extends INode
     implements LinkedElement {
   // Note: this format is used both in-memory and on-disk.  Changes will be
   // incompatible.
+    //todo 在HDFS中， 用户名和用户标识的对应关系、 用户组名和用户组标识的对应关系都保存在SerialNumberManager类中。
+  //    通过SerialNumberManager类， 名字节点不必在INode对象中保存字符串形式的用户名和用户组名，
+  //    只需将整型的用户名标识和用户组名标识放入permission字段中即可。
   enum PermissionStatusFormat implements LongBitFormat.Enum {
     MODE(null, 16),
     GROUP(MODE.BITS, 24),
@@ -45,19 +48,19 @@ public abstract class INodeWithAdditionalFields extends INode
     private PermissionStatusFormat(LongBitFormat previous, int length) {
       BITS = new LongBitFormat(name(), previous, length, 0);
     }
-
+    //todo     //提取最后24个比特的user信息，并通过SerialNumberManager获取用户名
     static String getUser(long permission) {
       final int n = (int)USER.BITS.retrieve(permission);
       String s = SerialNumberManager.USER.getString(n);
       assert s != null;
       return s;
     }
-
+    //todo     //提取中间24个比特的group信息，并通过SerialNumberManager获取用户组名
     static String getGroup(long permission) {
       final int n = (int)GROUP.BITS.retrieve(permission);
       return SerialNumberManager.GROUP.getString(n);
     }
-    
+    //todo     //提取前16个比特的mode信息
     static short getMode(long permission) {
       return (short)MODE.BITS.retrieve(permission);
     }
@@ -126,6 +129,7 @@ public abstract class INodeWithAdditionalFields extends INode
   private INodeWithAdditionalFields(INode parent, long id, byte[] name,
       long permission, long modificationTime, long accessTime) {
     super(parent);
+    //todo ■ id： INode的id。
     this.id = id;
     this.name = name;
     this.permission = permission;

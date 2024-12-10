@@ -17,18 +17,9 @@
  */
 package org.apache.hadoop.hdfs.server.namenode;
 
-import static org.apache.hadoop.hdfs.client.HdfsClientConfigKeys.DFS_WEBHDFS_REST_CSRF_ENABLED_DEFAULT;
-import static org.apache.hadoop.hdfs.client.HdfsClientConfigKeys.DFS_WEBHDFS_REST_CSRF_ENABLED_KEY;
-
-import java.io.IOException;
-import java.net.InetSocketAddress;
-import java.util.Map;
-import java.util.HashMap;
-
-import javax.servlet.ServletContext;
-
-import org.apache.hadoop.classification.VisibleForTesting;
+import com.sun.jersey.api.core.ResourceConfig;
 import org.apache.hadoop.classification.InterfaceAudience;
+import org.apache.hadoop.classification.VisibleForTesting;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.ha.HAServiceProtocol;
 import org.apache.hadoop.hdfs.DFSConfigKeys;
@@ -48,7 +39,14 @@ import org.apache.hadoop.http.HttpServer2;
 import org.apache.hadoop.net.NetUtils;
 import org.apache.hadoop.security.http.RestCsrfPreventionFilter;
 
-import com.sun.jersey.api.core.ResourceConfig;
+import javax.servlet.ServletContext;
+import java.io.IOException;
+import java.net.InetSocketAddress;
+import java.util.HashMap;
+import java.util.Map;
+
+import static org.apache.hadoop.hdfs.client.HdfsClientConfigKeys.DFS_WEBHDFS_REST_CSRF_ENABLED_DEFAULT;
+import static org.apache.hadoop.hdfs.client.HdfsClientConfigKeys.DFS_WEBHDFS_REST_CSRF_ENABLED_KEY;
 
 /**
  * Encapsulates the HTTP server started by the NameNode. 
@@ -71,6 +69,7 @@ public class NameNodeHttpServer {
 
   NameNodeHttpServer(Configuration conf, NameNode nn,
       InetSocketAddress bindAddress) {
+      //todo 构建初始化的时候,绑定地址为  0.0.0.0: 9870
     this.conf = conf;
     this.nn = nn;
     this.bindAddress = bindAddress;
@@ -114,17 +113,21 @@ public class NameNodeHttpServer {
    */
   void start() throws IOException {
     HttpConfig.Policy policy = DFSUtil.getHttpPolicy(conf);
+    //todo     //获取服务器host
     final String infoHost = bindAddress.getHostName();
-
+    //todo     // 获取绑定地址
     final InetSocketAddress httpAddr = bindAddress;
+    //todo     //获取服务地址  0.0.0.0:9871
     final String httpsAddrString = conf.getTrimmed(
         DFSConfigKeys.DFS_NAMENODE_HTTPS_ADDRESS_KEY,
         DFSConfigKeys.DFS_NAMENODE_HTTPS_ADDRESS_DEFAULT);
+    //todo     //构建 网络InetSocketAddress 服务:
     InetSocketAddress httpsAddr = NetUtils.createSocketAddr(httpsAddrString);
 
     if (httpsAddr != null) {
       // If DFS_NAMENODE_HTTPS_BIND_HOST_KEY exists then it overrides the
       // host name portion of DFS_NAMENODE_HTTPS_ADDRESS_KEY.
+        //todo       // 绑定地址 如果dfs.namenode.https-bind-host已经绑定了地址的话,将会覆盖掉之前创建的
       final String bindHost =
           conf.getTrimmed(DFSConfigKeys.DFS_NAMENODE_HTTPS_BIND_HOST_KEY);
       if (bindHost != null && !bindHost.isEmpty()) {
@@ -146,7 +149,7 @@ public class NameNodeHttpServer {
         DFSConfigKeys.DFS_XFRAME_OPTION_VALUE_DEFAULT);
 
     builder.configureXFrame(xFrameEnabled).setXFrameOption(xFrameOptionValue);
-
+    //todo     //构建http 服务
     httpServer = builder.build();
 
     if (policy.isHttpsEnabled()) {

@@ -17,39 +17,41 @@
  */
 package org.apache.hadoop.hdfs.server.namenode;
 
-import java.io.FileNotFoundException;
-import java.io.PrintWriter;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-
+import org.apache.hadoop.classification.VisibleForTesting;
 import org.apache.hadoop.fs.PathIsNotDirectoryException;
-import org.apache.hadoop.fs.permission.FsAction;
-import org.apache.hadoop.fs.permission.PermissionStatus;
 import org.apache.hadoop.fs.StorageType;
 import org.apache.hadoop.fs.XAttr;
+import org.apache.hadoop.fs.permission.FsAction;
+import org.apache.hadoop.fs.permission.PermissionStatus;
 import org.apache.hadoop.hdfs.DFSUtil;
 import org.apache.hadoop.hdfs.protocol.SnapshotException;
 import org.apache.hadoop.hdfs.server.blockmanagement.BlockStoragePolicySuite;
 import org.apache.hadoop.hdfs.server.namenode.INodeReference.WithCount;
-import org.apache.hadoop.hdfs.server.namenode.visitor.NamespaceVisitor;
 import org.apache.hadoop.hdfs.server.namenode.snapshot.DirectorySnapshottableFeature;
 import org.apache.hadoop.hdfs.server.namenode.snapshot.DirectoryWithSnapshotFeature;
 import org.apache.hadoop.hdfs.server.namenode.snapshot.DirectoryWithSnapshotFeature.DirectoryDiffList;
 import org.apache.hadoop.hdfs.server.namenode.snapshot.Snapshot;
 import org.apache.hadoop.hdfs.server.namenode.snapshot.SnapshotManager;
+import org.apache.hadoop.hdfs.server.namenode.visitor.NamespaceVisitor;
 import org.apache.hadoop.hdfs.util.ReadOnlyList;
-
-import org.apache.hadoop.classification.VisibleForTesting;
-import org.apache.hadoop.util.Preconditions;
 import org.apache.hadoop.security.AccessControlException;
+import org.apache.hadoop.util.Preconditions;
+
+import java.io.FileNotFoundException;
+import java.io.PrintWriter;
+import java.util.*;
 
 import static org.apache.hadoop.hdfs.protocol.HdfsConstants.BLOCK_STORAGE_POLICY_ID_UNSPECIFIED;
 
 /**
  * Directory INode class.
+ * todo INodeDirectory抽象了HDFS文件系统中的目录， 目录是文件系统中的一个虚拟容器，
+ *  里面保存了一组文件和其他一些目录。 在INodeDirectory的实现中， 添加了成员变量children，
+ *  用来保存目录中所有子目录项的INode对象
+ *
+ * todo  ■ 特性（Feature） 相关方法： 用于向当前INodeDirectory添加新的Feature对象， 以及获取指定Feature对象的方法，
+ *  包括addDirectoryWithQuotaFeature()、getDirectoryWith QuotaFeature()、 addSnapshottableFeature()、
+ *  addSnapshotFeature()、getDirectorySnapshottableFeature()、getDirectoryWithSnapshotFeature()等方法。
  */
 public class INodeDirectory extends INodeWithAdditionalFields
     implements INodeDirectoryAttributes {
@@ -72,7 +74,9 @@ public class INodeDirectory extends INodeWithAdditionalFields
   public static final int DEFAULT_FILES_PER_DIRECTORY = 2;
 
   static final byte[] ROOT_NAME = DFSUtil.string2Bytes("");
-
+    //todo  //使用一个children字段保存该目录中所有孩子节点的INode对象  :  ArrayList实例
+    //todo ■children字段的增、 删、 改、 查方法： 用于向当前目录添加、 删除、 替换、 查找子目录项等操作，
+    // 包括addChild()、 removeChild()、 replaceChild()、 getChild()、clearChildren()、 cleanSubtreeRecursively()等方法。
   private List<INode> children = null;
   
   /** constructor */
@@ -986,6 +990,10 @@ public class INodeDirectory extends INodeWithAdditionalFields
   }
 
   /** A pair of Snapshot and INode objects. */
+    /**
+     * todo ■ 快照（Snapshot） 相关方法： 用于向当前目录添加、 删除或者更改快照等操作，包括isSnapshottable()、
+     *  getSnapshot()、 setSnapshotQuota()、 addSnapshot()、removeSnapshot()等方法。
+     */
   public static class SnapshotAndINode {
     public final int snapshotId;
     public final INode inode;

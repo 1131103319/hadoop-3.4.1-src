@@ -17,22 +17,17 @@
  */
 package org.apache.hadoop.hdfs.server.namenode;
 
-import java.io.PrintWriter;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.Iterator;
-import java.util.List;
-
 import org.apache.hadoop.fs.permission.FsPermission;
 import org.apache.hadoop.fs.permission.PermissionStatus;
 import org.apache.hadoop.hdfs.server.blockmanagement.BlockStoragePolicySuite;
 import org.apache.hadoop.hdfs.server.namenode.snapshot.DirectoryWithSnapshotFeature;
 import org.apache.hadoop.hdfs.server.namenode.snapshot.Snapshot;
-
-import org.apache.hadoop.util.Preconditions;
 import org.apache.hadoop.hdfs.server.namenode.visitor.NamespaceVisitor;
 import org.apache.hadoop.security.AccessControlException;
+import org.apache.hadoop.util.Preconditions;
+
+import java.io.PrintWriter;
+import java.util.*;
 
 /**
  * A reference to an inode.
@@ -77,6 +72,29 @@ import org.apache.hadoop.security.AccessControlException;
  *         inode(id=1000,name=bar).getParent() returns /xyz but not /abc.
  * Note 3: {@link INodeReference#getId()} returns the id the referred inode,
  *         e.g. all WithName, DstReference and WithCount above return id=1000.
+ *todo         此类及其子类用于支持多个访问路径。
+ * 当文件/目录存储在某些快照中并重命名/移动到其他位置时，它可能具有多个访问路径。
+ * （1）假设我们有/abc/foo，假设foo的inode是inode（id=1000，name=foo）
+ * （2）为/abc创建快照s0
+ * （3）mv/abc/foo/xyz/bar，即inode（id=1000，name=…）将“foo”重命名到“bar”，它的父对象变成/xyz。
+ * 然后，/xyz/bar和/abc/.snapshot/s0/foo是指向同一inode，inode（id=1000，name=bar）的两条不同的访问路径。
+ * 关于references[引用],我们可以得到以下信息:
+ * 1. /abc 有一个子引用 (id : 1001,name: foo)
+ * 2. /xyz 有一个子引用 (id : 1002)
+ * 3. 引用(id : 1001,name: foo) 和引用(id : 1002) 指向同一个引用 (id:1003, count: 2)
+ * 4. 最后(id:1003, count: 2) 执行inode (id:1000,name: bar)
+ * 注意:
+ * 1. 对于没有名称的引用，例如ref（id=1002），它使用被引用inode的名称。
+ * 2. getParent（）总是返回当前状态的父对象，例如 : inode（id:1000，name:bar.getParent（）返回/xyz而不是/abc。
+ */
+
+/**
+ * todo INodeReference是一个抽象类, 继承INode抽象类. 当HDFS文件／ 目录处于某个快照中，
+ *  并且这个文件／ 目录被重命名或者移动到其他路径时， 该文件／ 目录就会存在多条访问路径。
+ *  WithName、 WithCount、 DstReference都是INodeReference的子类， 同时也是INodeReference的内部类。
+ *  WithName对象用于替代重命名操作前源路径中的INode对象， DstReference对象则用于替代重命名操作后目标路径中的INode对象。
+ *  WithName和DstReference同指向了一个WithCount对象， WithCount对象则指向了文件系统目录树中真正的INode对象.
+
  */
 public abstract class INodeReference extends INode {
   /** Assert the relationship this node and the references. */
