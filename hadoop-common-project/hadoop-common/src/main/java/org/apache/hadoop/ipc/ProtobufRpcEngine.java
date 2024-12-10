@@ -82,7 +82,15 @@ public class ProtobufRpcEngine implements RpcEngine {
   public <T> ProtocolProxy<T> getProxy(Class<T> protocol, long clientVersion,
       ConnectionId connId, Configuration conf, SocketFactory factory,
       AlignmentContext alignmentContext) throws IOException {
+      //todo //构造一个实现了InvocationHandler接口的invoker 对象
+      //    // (动态代理机制中的InvocationHandler对象会在invoke()方法中代理所有目标接口上的 调用，
+      //    // 用户可以在invoke()方法中添加代理操作)
     final Invoker invoker = new Invoker(protocol, connId, conf, factory, alignmentContext);
+    //todo     //然后调用Proxy.newProxylnstance()获取动态代理对象，并通过ProtocolProxy返回
+      //todo loader ：       一个classloader对象，定义了由哪个classloader对象对生成的代理类进行加载
+      //todo interfaces： 一个interface对象数组，表示我们将要给我们的代理对象提供一组什么样的接口，如果我们提供了这样一个接口对象数组，
+      // 那么也就是声明了代理类实现了这些接口，代理类就可以调用接口中声明的所有方法。
+      //todo h：一个InvocationHandler对象，表示的是当动态代理对象调用方法的时候会关联到哪一个InvocationHandler对象上，并最终由其调用。
     return new ProtocolProxy<T>(protocol, (T) Proxy.newProxyInstance(
         protocol.getClassLoader(), new Class[] {protocol}, invoker), false);
   }
@@ -145,6 +153,7 @@ public class ProtobufRpcEngine implements RpcEngine {
         int rpcTimeout, RetryPolicy connectionRetryPolicy,
         AtomicBoolean fallbackToSimpleAuth, AlignmentContext alignmentContext)
         throws IOException {
+        //todo 调用getConnectionId方法 构建一个Client.ConnectionId对象.
       this(protocol, Client.ConnectionId.getConnectionId(
           addr, protocol, ticket, rpcTimeout, connectionRetryPolicy, conf),
           conf, factory, alignmentContext);
@@ -159,9 +168,11 @@ public class ProtobufRpcEngine implements RpcEngine {
      * @param factory input factory.
      * @param alignmentContext Alignment context
      */
+    //todo 这个是Invoker真正的构建方法,这里面会将刚刚构建好的ConnectionId 赋值给remoteId 字段.
     protected Invoker(Class<?> protocol, Client.ConnectionId connId,
         Configuration conf, SocketFactory factory, AlignmentContext alignmentContext) {
       this.remoteId = connId;
+      //todo // 获取/创建  客户端
       this.client = CLIENTS.getClient(conf, factory, RpcWritable.Buffer.class);
       this.protocolName = RPC.getProtocolName(protocol);
       this.clientProtocolVersion = RPC
@@ -209,6 +220,19 @@ public class ProtobufRpcEngine implements RpcEngine {
      * cause is RemoteException, then unwrap it to get the exception thrown by
      * the server.
      */
+      /**
+       * todo * ProtobufRpcEngine.Invoker.invoker() 方法主要做了三件事情:
+       *      *  1.构造请求头域，
+       *      *    使用protobuf将请求头序列化，这个请求头域 记录了当前RPC调用是什么接口的什么方法上的调用;
+       *      *  2.通过RPC.Client类发送请求头以 及序列化好的请求参数。
+       *      *    请求参数是在ClientNamenodeProtocolPB调用时就已经序列化好的，
+       *      *    调用Client.call()方法时，
+       *      *    需要将请求头以及请求参数使用一个RpcRequestWrapper对象封装;
+       *      *  3.获取响应信息，序列化响应信息并返回。
+       *
+       * @return
+       * @throws ServiceException
+       */
     @Override
     public Message invoke(Object proxy, final Method method, Object[] args)
         throws ServiceException {
@@ -216,7 +240,7 @@ public class ProtobufRpcEngine implements RpcEngine {
       if (LOG.isDebugEnabled()) {
         startTime = Time.now();
       }
-      
+      //todo       // pb接口的参数只有两个，即RpcController + Message
       if (args.length != 2) { // RpcController + Message
         throw new ServiceException(
             "Too many or few parameters for request. Method: ["
@@ -243,10 +267,11 @@ public class ProtobufRpcEngine implements RpcEngine {
             " {" + TextFormat.shortDebugString((Message) args[1]) + "}");
       }
 
-
+        //todo       //获取请求调用的参数，例如RenameRequestProto
       final Message theRequest = (Message) args[1];
       final RpcWritable.Buffer val;
       try {
+          //todo            //调用RPC.Client发送请求   constructRpcRequest //构造请求头域，标明在什么接口上调用什么方法
         val = (RpcWritable.Buffer) client.call(RPC.RpcKind.RPC_PROTOCOL_BUFFER,
             constructRpcRequest(method, theRequest), remoteId,
             fallbackToSimpleAuth, alignmentContext);
@@ -364,7 +389,34 @@ public class ProtobufRpcEngine implements RpcEngine {
     return CLIENTS.getClient(conf, SocketFactory.getDefault(),
         RpcWritable.Buffer.class);
   }
+//todo 在获取到ProtobufRpcEngine 之后, 调用其 getServer 方法, 获取Server 实例.
 
+    /**
+     * protocolClass : protocol协议的类
+     * protocolImpl : protocol实现类
+     * conf :  配置文件
+     * bindAddress :  Server绑定的ip地址
+     * port :   Server绑定的端口
+     * numHandlers :  handler的线程数量 , 默认值 1
+     * verbose :  是否每一个请求,都需要打印日志.
+     * portRangeConfig  : A config parameter that can be used to restrict
+     * alignmentContext :  provides server state info on client responses
+
+     * @param protocol
+     * @param protocolImpl
+     * @param bindAddress
+     * @param port
+     * @param numHandlers
+     * @param numReaders
+     * @param queueSizePerHandler
+     * @param verbose
+     * @param conf
+     * @param secretManager
+     * @param portRangeConfig
+     * @param alignmentContext
+     * @return
+     * @throws IOException
+     */
   @Override
   public RPC.Server getServer(Class<?> protocol, Object protocolImpl,
       String bindAddress, int port, int numHandlers, int numReaders,
@@ -443,6 +495,7 @@ public class ProtobufRpcEngine implements RpcEngine {
      * @param numReaders input numReaders.
      * @throws IOException raised on errors performing I/O.
      */
+    //todo 首先会调用父类的构建方法.  然后再调用registerProtocolAndlmpl 方法注册接口类和接口的实现类
     public Server(Class<?> protocolClass, Object protocolImpl,
         Configuration conf, String bindAddress, int port, int numHandlers,
         int numReaders, int queueSizePerHandler, boolean verbose,

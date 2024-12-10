@@ -216,6 +216,8 @@ public class RPC {
     static synchronized RpcEngine getProtocolEngine(Class<?> protocol,
                                                     Configuration conf) {
         //todo 从缓存中获取RpcEngine
+        // 这个是提前设置的
+        // 通过 RPC.setProtocolEngine(conf, MetaInfoProtocol.class,ProtobufRpcEngine.class);
         RpcEngine engine = PROTOCOL_ENGINES.get(protocol);
         if (engine == null) {
             //todo       //获取RpcEngine实现
@@ -223,6 +225,7 @@ public class RPC {
             // 默认是WritableRpcEngine(已过时). 本文代码会走默认的WritableRpcEngine.
             Class<?> impl = conf.getClass(ENGINE_PROP + "." + protocol.getName(),
                     WritableRpcEngine.class);
+            //todo 实例化引擎
             engine = (RpcEngine) ReflectionUtils.newInstance(impl, conf);
             PROTOCOL_ENGINES.put(protocol, engine);
         }
@@ -726,6 +729,15 @@ public class RPC {
      * @return a proxy instance
      * @throws IOException  if the thread is interrupted.
      */
+    /**
+     *todo
+     * @param protocol 协议
+     * @param clientVersion 客户端的版本
+     * @param addr  请求地址
+     * @param conf 配置文件
+     * @return a proxy instance
+     * @throws IOException
+     */
     public static <T> T getProxy(Class<T> protocol,
                                  long clientVersion,
                                  InetSocketAddress addr, Configuration conf)
@@ -1209,8 +1221,10 @@ public class RPC {
                          Configuration conf, String serverName,
                          SecretManager<? extends TokenIdentifier> secretManager,
                          String portRangeConfig) throws IOException {
+            //todo 调用父类,进行Server的初始化操作
             super(bindAddress, port, paramClass, handlerCount, numReaders, queueSizePerHandler,
                     conf, serverName, secretManager, portRangeConfig);
+            //todo //在这里设置meta data 的通讯协议,已经处理的RpcEngine
             initProtocolMetaInfo(conf);
         }
 

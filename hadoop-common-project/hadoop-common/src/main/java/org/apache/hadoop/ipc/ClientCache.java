@@ -18,18 +18,16 @@
 
 package org.apache.hadoop.ipc;
 
-import java.util.HashMap;
-import java.util.Map;
-
-import javax.net.SocketFactory;
-
 import org.apache.hadoop.classification.InterfaceAudience;
 import org.apache.hadoop.classification.InterfaceStability;
+import org.apache.hadoop.classification.VisibleForTesting;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.io.ObjectWritable;
 import org.apache.hadoop.io.Writable;
 
-import org.apache.hadoop.classification.VisibleForTesting;
+import javax.net.SocketFactory;
+import java.util.HashMap;
+import java.util.Map;
 
 /* Cache a client using its socket factory as the hash key */
 @InterfaceAudience.LimitedPrivate({"HDFS", "MapReduce"})
@@ -47,6 +45,15 @@ public class ClientCache {
    * @param valueClass Class of the expected response
    * @return an IPC client
    */
+    /**
+     * todo 先尝试从缓存中获取client对象, 如果没有的话,在自己创建一个,并且加到缓存中.
+     * todo 为什么会放到缓存中呢??
+     * todo 当client和server再次通讯的时候,可以复用这个client .
+     * @param conf
+     * @param factory
+     * @param valueClass
+     * @return
+     */
   public synchronized Client getClient(Configuration conf,
       SocketFactory factory, Class<? extends Writable> valueClass) {
     // Construct & cache client.  The configuration is only used for timeout,
@@ -54,11 +61,16 @@ public class ClientCache {
     // connection pooling and leak sockets, or (b) use the same timeout for all
     // configurations.  Since the IPC is usually intended globally, not
     // per-job, we choose (a).
+      //todo     //从缓存中获取Client
     Client client = clients.get(factory);
     if (client == null) {
+        //todo * 如果没有缓存的client存在的话
+        //   * 根据用户提供的SocketFactory 构造 或者 缓存一个IPC 客户端
       client = new Client(valueClass, conf, factory);
+      //todo       //缓存创建的client
       clients.put(factory, client);
     } else {
+        //todo       //client的引用计数+1
       client.incCount();
     }
     if (Client.LOG.isDebugEnabled()) {
