@@ -17,35 +17,24 @@
  */
 package org.apache.hadoop.hdfs.server.namenode;
 
-import static org.apache.hadoop.hdfs.server.common.HdfsServerConstants.INVALID_TXID;
-import static org.apache.hadoop.util.ExitUtil.terminate;
-
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.HashMap;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-import java.util.PriorityQueue;
-import java.util.SortedSet;
-import java.util.TreeSet;
-import java.util.concurrent.CopyOnWriteArrayList;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.apache.hadoop.classification.InterfaceAudience;
+import org.apache.hadoop.classification.VisibleForTesting;
 import org.apache.hadoop.hdfs.server.common.Storage;
 import org.apache.hadoop.hdfs.server.common.StorageInfo;
 import org.apache.hadoop.hdfs.server.protocol.NamespaceInfo;
 import org.apache.hadoop.hdfs.server.protocol.RemoteEditLog;
 import org.apache.hadoop.hdfs.server.protocol.RemoteEditLogManifest;
 import org.apache.hadoop.util.Lists;
-
-import org.apache.hadoop.classification.VisibleForTesting;
 import org.apache.hadoop.util.Preconditions;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.io.IOException;
+import java.util.*;
+import java.util.concurrent.CopyOnWriteArrayList;
+
+import static org.apache.hadoop.hdfs.server.common.HdfsServerConstants.INVALID_TXID;
+import static org.apache.hadoop.util.ExitUtil.terminate;
 
 /**
  * Manages a collection of Journals. None of the methods are synchronized, it is
@@ -222,6 +211,12 @@ public class JournalSet implements JournalManager {
   }
   
   @Override
+  /**
+   * todo journalSet.finalizeLogSegment()方法也会调用mapJournalsAndReportErrors()方法将finalizeLogSegment()
+   *    调用前转到journals集合中保存的所有的JournalManager对象上。
+   *    比如FileJournalManager, FileJoumalManager.finalizeLogSegment()方法会将edit_inprogress文件改名为edit文件，
+   *    新生成的edit文件覆盖了curSegmentTxid -> lastTxId之间的所有事务。
+   */
   public void finalizeLogSegment(final long firstTxId, final long lastTxId)
       throws IOException {
     mapJournalsAndReportErrors(new JournalClosure() {
@@ -236,6 +231,12 @@ public class JournalSet implements JournalManager {
   }
    
   @Override
+  /**
+   * todo * close()方法用于关闭editlog文件的存储， 完成了IN_SEGMENT到CLOSED状态的改
+   *    * 变。 close()会首先等待sync操作完成， 然后调用上一节介绍的endCurrentLogSegment()方
+   *    * 法， 将当前正在进行写操作的日志段落结束。 之后close()方法会关闭journalSet对象， 并将
+   *    * FSEditLog状态机转变为CLOSED状态。
+   */
   public void close() throws IOException {
     mapJournalsAndReportErrors(new JournalClosure() {
       @Override
@@ -388,8 +389,10 @@ public class JournalSet implements JournalManager {
       JournalClosure closure, String status) throws IOException{
 
     List<JournalAndStream> badJAS = Lists.newLinkedList();
+    //todo     //遍历journals字段中保存的所有JournalAndStream对象
     for (JournalAndStream jas : journals) {
       try {
+          //todo         //在闭包对象上调用apply()方法前转请求
         closure.apply(jas);
       } catch (Throwable t) {
         if (jas.isRequired()) {
@@ -451,7 +454,14 @@ public class JournalSet implements JournalManager {
     public long getLastJournalledTxId() {
       return lastJournalledTxId;
     }
-
+    /**
+     * todo * todo mapJournalsAndReportErrors()方法在调用时传入了一个闭包对象closure，
+     *    *    这个对象是在JournalSetOutputStream实现的EditLogOutputStream接口方法上定义的。
+     *    *    以JournalSetOutputStream.write()方法为例， write()方法定义了写操作的闭包对象， 这个闭
+     *    *    包对象会提取出JournalAndStream对象中封装的EditLogOutputStream对象， 然后调用这个对象上的write()方法来完成写数据的功能。
+     *    *    通过这种闭包机制， JournalSetOutputStream完成了将EditLogOutputStream接口上的write()调用前转到JournalAndStream保存
+     *    *    的EditLogOutputStream对象上的操作。
+     */
     @Override
     public void write(final FSEditLogOp op)
         throws IOException {
@@ -459,6 +469,8 @@ public class JournalSet implements JournalManager {
         @Override
         public void apply(JournalAndStream jas) throws IOException {
           if (jas.isActive()) {
+              //todo //   提取出JournalAndStream对象中封装的EditLogOutputStream对象，
+              //            //   并在EditLogOutputStream对象上调用write()方法
             jas.getCurrentStream().write(op);
           }
         }

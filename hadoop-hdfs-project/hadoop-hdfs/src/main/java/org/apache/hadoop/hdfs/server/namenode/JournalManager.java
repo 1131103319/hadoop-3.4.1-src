@@ -17,15 +17,15 @@
  */
 package org.apache.hadoop.hdfs.server.namenode;
 
-import java.io.Closeable;
-import java.io.IOException;
-
 import org.apache.hadoop.classification.InterfaceAudience;
 import org.apache.hadoop.classification.InterfaceStability;
 import org.apache.hadoop.hdfs.server.common.Storage;
 import org.apache.hadoop.hdfs.server.common.Storage.FormatConfirmable;
 import org.apache.hadoop.hdfs.server.common.StorageInfo;
 import org.apache.hadoop.hdfs.server.protocol.NamespaceInfo;
+
+import java.io.Closeable;
+import java.io.IOException;
 
 /**
  * A JournalManager is responsible for managing a single place of storing
@@ -36,6 +36,14 @@ import org.apache.hadoop.hdfs.server.protocol.NamespaceInfo;
  */
 @InterfaceAudience.Private
 @InterfaceStability.Evolving
+/**
+ * todo JournalManager类是负责在特定存储目录上持久化editlog文件的类， 它的format()方法负责格式化底层存储，
+ *  startLogSegment()方法负责从指定事务id开始记录一个操作的段落， finalizeLogSegment()方法负责完成指定事务id区间的写操作。
+ *  这里之所以抽象这个接口， 是因为Namenode可能将editlog文件持久化到不同类型的存储上，
+ *  也就需要不同类型的JournalManager来管理， 所以需要定义一个抽象的接口。 JoumalManager有多个子类，
+ *  普通的文件系统由FileJournalManager类管理、 共享NFS由BackupJournalManager类管理、
+ *  Bookkeeper由BookkeeperJournalManager类管理、 Quorum集群则由QuorumJournalManager类管理。
+ */
 public interface JournalManager extends Closeable, FormatConfirmable,
     LogsPurgeable {
 
