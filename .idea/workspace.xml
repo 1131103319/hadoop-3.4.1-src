@@ -4,7 +4,13 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="ccd4fc30-3b96-423a-b50f-8e7e2dce30bf" name="Changes" comment="源码" />
+    <list default="true" id="ccd4fc30-3b96-423a-b50f-8e7e2dce30bf" name="Changes" comment="源码">
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/hadoop-cloud-storage-project/hadoop-huaweicloud/pom.xml" beforeDir="false" afterPath="$PROJECT_DIR$/hadoop-cloud-storage-project/hadoop-huaweicloud/pom.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/hadoop-cloud-storage-project/hadoop-huaweicloud/src/test/java/org/apache/hadoop/fs/obs/TestOBSFileContextCreateMkdir.java" beforeDir="false" afterPath="$PROJECT_DIR$/hadoop-cloud-storage-project/hadoop-huaweicloud/src/test/java/org/apache/hadoop/fs/obs/TestOBSFileContextCreateMkdir.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/hadoop-yarn-project/hadoop-yarn/hadoop-yarn-server/hadoop-yarn-server-resourcemanager/src/main/java/org/apache/hadoop/yarn/server/resourcemanager/ClientRMService.java" beforeDir="false" afterPath="$PROJECT_DIR$/hadoop-yarn-project/hadoop-yarn/hadoop-yarn-server/hadoop-yarn-server-resourcemanager/src/main/java/org/apache/hadoop/yarn/server/resourcemanager/ClientRMService.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/hadoop-yarn-project/hadoop-yarn/hadoop-yarn-server/hadoop-yarn-server-resourcemanager/src/main/java/org/apache/hadoop/yarn/server/resourcemanager/RMActiveServiceContext.java" beforeDir="false" afterPath="$PROJECT_DIR$/hadoop-yarn-project/hadoop-yarn/hadoop-yarn-server/hadoop-yarn-server-resourcemanager/src/main/java/org/apache/hadoop/yarn/server/resourcemanager/RMActiveServiceContext.java" afterDir="false" />
+    </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -56,43 +62,59 @@
   <component name="ProjectViewState">
     <option name="showLibraryContents" value="true" />
   </component>
-  <component name="PropertiesComponent">{
-  &quot;keyToString&quot;: {
-    &quot;Application.Client.executor&quot;: &quot;Run&quot;,
-    &quot;Application.Server.executor&quot;: &quot;Run&quot;,
-    &quot;Application.org.apache.hadoop.mytest_rpc.test3.Client.executor&quot;: &quot;Run&quot;,
-    &quot;Application.org.apache.hadoop.mytest_rpc.test3.Server.executor&quot;: &quot;Run&quot;,
-    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
-    &quot;RunOnceActivity.git.unshallow&quot;: &quot;true&quot;,
-    &quot;git-widget-placeholder&quot;: &quot;main&quot;,
-    &quot;kotlin-language-version-configured&quot;: &quot;true&quot;,
-    &quot;last_opened_file_path&quot;: &quot;/Users/wohaocai/IdeaProjects/hadoop-3.4.1-src/hadoop-common-project/hadoop-common/src/main/java/org/apache/hadoop/mytest_rpc/test2&quot;,
-    &quot;node.js.detected.package.eslint&quot;: &quot;true&quot;,
-    &quot;node.js.detected.package.tslint&quot;: &quot;true&quot;,
-    &quot;node.js.selected.package.eslint&quot;: &quot;(autodetect)&quot;,
-    &quot;node.js.selected.package.tslint&quot;: &quot;(autodetect)&quot;,
-    &quot;nodejs_package_manager_path&quot;: &quot;npm&quot;,
-    &quot;org.rust.cargo.project.model.impl.CargoExternalSystemProjectAware.subscribe.first.balloon&quot;: &quot;&quot;,
-    &quot;org.rust.first.attach.projects&quot;: &quot;true&quot;,
-    &quot;project.structure.last.edited&quot;: &quot;Problems&quot;,
-    &quot;project.structure.proportion&quot;: &quot;0.0&quot;,
-    &quot;project.structure.side.proportion&quot;: &quot;0.0&quot;,
-    &quot;settings.editor.selected.configurable&quot;: &quot;preferences.language.and.region&quot;,
-    &quot;vue.rearranger.settings.migration&quot;: &quot;true&quot;
+  <component name="PropertiesComponent"><![CDATA[{
+  "keyToString": {
+    "Application.Client.executor": "Run",
+    "Application.NameNode.executor": "Run",
+    "Application.Server.executor": "Run",
+    "Application.org.apache.hadoop.mytest_rpc.test3.Client.executor": "Run",
+    "Application.org.apache.hadoop.mytest_rpc.test3.Server.executor": "Run",
+    "RunOnceActivity.ShowReadmeOnStart": "true",
+    "RunOnceActivity.git.unshallow": "true",
+    "git-widget-placeholder": "main",
+    "kotlin-language-version-configured": "true",
+    "last_opened_file_path": "/Users/wohaocai/IdeaProjects/hadoop-3.4.1-src/hadoop-common-project/hadoop-common/src/main/java/org/apache/hadoop/mytest_rpc/test2",
+    "node.js.detected.package.eslint": "true",
+    "node.js.detected.package.tslint": "true",
+    "node.js.selected.package.eslint": "(autodetect)",
+    "node.js.selected.package.tslint": "(autodetect)",
+    "nodejs_package_manager_path": "npm",
+    "org.rust.cargo.project.model.impl.CargoExternalSystemProjectAware.subscribe.first.balloon": "",
+    "org.rust.first.attach.projects": "true",
+    "project.structure.last.edited": "Problems",
+    "project.structure.proportion": "0.0",
+    "project.structure.side.proportion": "0.0",
+    "settings.editor.selected.configurable": "preferences.language.and.region",
+    "vue.rearranger.settings.migration": "true"
   }
-}</component>
+}]]></component>
   <component name="RecentsManager">
     <key name="CopyFile.RECENT_KEYS">
       <recent name="$PROJECT_DIR$/hadoop-common-project/hadoop-common/src/main/java/org/apache/hadoop/mytest_rpc/test2" />
     </key>
   </component>
-  <component name="RunManager" selected="Application.org.apache.hadoop.mytest_rpc.test3.Client">
+  <component name="RunManager" selected="Application.NameNode">
     <configuration name="Client" type="Application" factoryName="Application" temporary="true" nameIsGenerated="true">
       <option name="MAIN_CLASS_NAME" value="org.apache.hadoop.mytest_rpc.test2.Client" />
       <module name="hadoop-common" />
       <extension name="coverage">
         <pattern>
           <option name="PATTERN" value="org.apache.hadoop.mytest_rpc.test2.*" />
+          <option name="ENABLED" value="true" />
+        </pattern>
+      </extension>
+      <method v="2">
+        <option name="Make" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="NameNode" type="Application" factoryName="Application" temporary="true" nameIsGenerated="true">
+      <option name="MAIN_CLASS_NAME" value="org.apache.hadoop.hdfs.server.namenode.NameNode" />
+      <module name="hadoop-hdfs" />
+      <option name="PROGRAM_PARAMETERS" value="-format" />
+      <option name="VM_PARAMETERS" value="-classpath $PROJECT_DIR$/hadoop-dist/target/hadoop-3.4.1/etc/hadoop/:$PROJECT_DIR$/hadoop-dist/target/hadoop-3.4.1/share/hadoop/common/lib/*:$PROJECT_DIR$/hadoop-dist/target/hadoop-3.4.1/share/hadoop/common/*:$PROJECT_DIR$/hadoop-dist/target/hadoop-3.4.1/share/hadoop/hdfs:$PROJECT_DIR$/hadoop-dist/target/hadoop-3.4.1/share/hadoop/hdfs/lib/*:$PROJECT_DIR$/hadoop-dist/target/hadoop-3.4.1/share/hadoop/hdfs/*:$PROJECT_DIR$/hadoop-dist/target/hadoop-3.4.1/share/hadoop/mapreduce/*:$PROJECT_DIR$/hadoop-dist/target/hadoop-3.4.1/share/hadoop/yarn/lib/*:$PROJECT_DIR$/hadoop-dist/target/hadoop-3.4.1/share/hadoop/yarn/*" />
+      <extension name="coverage">
+        <pattern>
+          <option name="PATTERN" value="org.apache.hadoop.hdfs.server.namenode.*" />
           <option name="ENABLED" value="true" />
         </pattern>
       </extension>
@@ -139,8 +161,16 @@
         <option name="Make" enabled="true" />
       </method>
     </configuration>
+    <list>
+      <item itemvalue="Application.Client" />
+      <item itemvalue="Application.NameNode" />
+      <item itemvalue="Application.org.apache.hadoop.mytest_rpc.test3.Client" />
+      <item itemvalue="Application.org.apache.hadoop.mytest_rpc.test3.Server" />
+      <item itemvalue="Application.Server" />
+    </list>
     <recent_temporary>
       <list>
+        <item itemvalue="Application.NameNode" />
         <item itemvalue="Application.org.apache.hadoop.mytest_rpc.test3.Client" />
         <item itemvalue="Application.org.apache.hadoop.mytest_rpc.test3.Server" />
         <item itemvalue="Application.Client" />
@@ -169,7 +199,7 @@
       <updated>1733620738511</updated>
       <workItem from="1733620739709" duration="4588000" />
       <workItem from="1733708542250" duration="53724000" />
-      <workItem from="1733901225527" duration="27450000" />
+      <workItem from="1733901225527" duration="29072000" />
     </task>
     <task id="LOCAL-00001" summary="源码">
       <option name="closed" value="true" />
@@ -227,7 +257,15 @@
       <option name="project" value="LOCAL" />
       <updated>1733996791720</updated>
     </task>
-    <option name="localTasksCounter" value="8" />
+    <task id="LOCAL-00008" summary="源码">
+      <option name="closed" value="true" />
+      <created>1733997071453</created>
+      <option name="number" value="00008" />
+      <option name="presentableId" value="LOCAL-00008" />
+      <option name="project" value="LOCAL" />
+      <updated>1733997071453</updated>
+    </task>
+    <option name="localTasksCounter" value="9" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">

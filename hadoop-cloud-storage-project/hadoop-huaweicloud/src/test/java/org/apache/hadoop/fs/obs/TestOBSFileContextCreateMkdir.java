@@ -18,19 +18,14 @@
 
 package org.apache.hadoop.fs.obs;
 
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import org.apache.hadoop.conf.Configuration;
-import org.apache.hadoop.fs.DelegateToFileSystem;
-import org.apache.hadoop.fs.FileContext;
-import org.apache.hadoop.fs.FileContextCreateMkdirBaseTest;
-import org.apache.hadoop.fs.FileContextTestHelper;
-import org.apache.hadoop.fs.FileSystem;
+import org.apache.hadoop.fs.*;
 import org.junit.Assume;
 import org.junit.BeforeClass;
 
 import java.net.URI;
 import java.util.UUID;
-
-import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 
 /**
  * File context create mkdir test cases on obs file system.
