@@ -160,27 +160,27 @@ import static org.apache.hadoop.util.Time.now;
  * FSNamesystem is a container of both transient
  * and persisted name-space state, and does all the book-keeping
  * work on a NameNode.
- *
+ * <p>
  * Its roles are briefly described below:
- *
+ * <p>
  * 1) Is the container for BlockManager, DatanodeManager,
- *    DelegationTokens, LeaseManager, etc. services.
+ * DelegationTokens, LeaseManager, etc. services.
  * 2) RPC calls that modify or inspect the name-space
- *    should get delegated here.
+ * should get delegated here.
  * 3) Anything that touches only blocks (eg. block reports),
- *    it delegates to BlockManager.
+ * it delegates to BlockManager.
  * 4) Anything that touches only file information (eg. permissions, mkdirs),
- *    it delegates to FSDirectory.
+ * it delegates to FSDirectory.
  * 5) Anything that crosses two of the above components should be
- *    coordinated here.
+ * coordinated here.
  * 6) Logs mutations to FSEditLog.
- *
+ * <p>
  * This class and its contents keep:
- *
+ * <p>
  * 1)  Valid fsname {@literal -->} blocklist  (kept on disk, logged)
  * 2)  Set of all valid blocks (inverted #1)
  * 3)  block {@literal -->} machinelist (kept in memory, rebuilt dynamically
- *     from reports)
+ * from reports)
  * 4)  machine {@literal -->} blocklist (inverted #2)
  * 5)  LRU cache of updated-heartbeat machines
  */
@@ -325,9 +325,13 @@ public class FSNamesystem implements Namesystem, FSNamesystemMBean,
      */
     private final boolean isGetBlocksCheckOperationEnabled;
 
-    /** Interval between each check of lease to release. */
+    /**
+     * Interval between each check of lease to release.
+     */
     private final long leaseRecheckIntervalMs;
-    /** Maximum time the lock is hold to release lease. */
+    /**
+     * Maximum time the lock is hold to release lease.
+     */
     private final long maxLockHoldToReleaseLeaseMs;
 
     // Batch size for open files response
@@ -351,7 +355,9 @@ public class FSNamesystem implements Namesystem, FSNamesystemMBean,
     private final List<AuditLogger> auditLoggers;
     private final boolean auditLogWithRemotePort;
 
-    /** The namespace tree. */
+    /**
+     * The namespace tree.
+     */
     FSDirectory dir;
     private BlockManager blockManager;
     private final SnapshotManager snapshotManager;
@@ -409,10 +415,14 @@ public class FSNamesystem implements Namesystem, FSNamesystemMBean,
     private volatile boolean hasResourcesAvailable = false;
     private volatile boolean fsRunning = true;
 
-    /** The start time of the namesystem. */
+    /**
+     * The start time of the namesystem.
+     */
     private final long startTime = now();
 
-    /** The interval of namenode checking for the disk space availability */
+    /**
+     * The interval of namenode checking for the disk space availability
+     */
     private final long resourceRecheckInterval;
 
     // The actual resource checker instance.
@@ -431,7 +441,9 @@ public class FSNamesystem implements Namesystem, FSNamesystemMBean,
 
     private final int numCommittedAllowed;
 
-    /** Lock to protect FSNamesystem. */
+    /**
+     * Lock to protect FSNamesystem.
+     */
     private final FSNamesystemLock fsLock;
 
     /**
@@ -556,7 +568,7 @@ public class FSNamesystem implements Namesystem, FSNamesystemMBean,
      * until {@link #lazyPersistFileScrubberTS} is updated.
      *
      * @return the current {@link #lazyPersistFileScrubberTS} if {@link
-     *         #lazyPersistFileScrubber} is not null.
+     * #lazyPersistFileScrubber} is not null.
      */
     @VisibleForTesting
     public long getLazyPersistFileScrubberTS() {
@@ -570,8 +582,9 @@ public class FSNamesystem implements Namesystem, FSNamesystemMBean,
 
     /**
      * Check the supplied configuration for correctness.
+     *
      * @param conf Supplies the configuration to validate.
-     * @throws IOException if the configuration could not be queried.
+     * @throws IOException              if the configuration could not be queried.
      * @throws IllegalArgumentException if the configuration is invalid.
      */
     private static void checkConfiguration(Configuration conf)
@@ -626,7 +639,7 @@ public class FSNamesystem implements Namesystem, FSNamesystemMBean,
      *             from which to load
      * @return an FSNamesystem which contains the loaded namespace
      * @throws IOException if loading fails
-     * //todo    * 从配置中加载image和edits目录  实例化FSNamesystem
+     *                     //todo    * 从配置中加载image和edits目录  实例化FSNamesystem
      */
     static FSNamesystem loadFromDisk(Configuration conf) throws IOException {
 
@@ -673,12 +686,12 @@ public class FSNamesystem implements Namesystem, FSNamesystemMBean,
 
     /**
      * Create an FSNamesystem associated with the specified image.
-     *
+     * <p>
      * Note that this does not load any data off of disk -- if you would
      * like that behavior, use {@link #loadFromDisk(Configuration)}
      *
-     * @param conf configuration
-     * @param fsImage The FSImage to associate with
+     * @param conf             configuration
+     * @param fsImage          The FSImage to associate with
      * @param ignoreRetryCache Whether or not should ignore the retry cache setup
      *                         step. For Secondary NN this should be set to true.
      * @throws IOException on bad configuration
@@ -949,7 +962,9 @@ public class FSNamesystem implements Namesystem, FSNamesystemMBean,
         }
     }
 
-    /** Whether or not retry cache is enabled */
+    /**
+     * Whether or not retry cache is enabled
+     */
     boolean hasRetryCache() {
         return retryCache != null;
     }
@@ -996,8 +1011,7 @@ public class FSNamesystem implements Namesystem, FSNamesystemMBean,
     /**
      * Locate DefaultAuditLogger, if any, to enable/disable CallerContext.
      *
-     * @param value
-     *          true, enable CallerContext, otherwise false to disable it.
+     * @param value true, enable CallerContext, otherwise false to disable it.
      */
     void setCallerContextEnabled(final boolean value) {
         for (AuditLogger logger : auditLoggers) {
@@ -1012,7 +1026,7 @@ public class FSNamesystem implements Namesystem, FSNamesystemMBean,
      * Get the value indicating if CallerContext is enabled.
      *
      * @return true, if CallerContext is enabled, otherwise false, if it's
-     *         disabled.
+     * disabled.
      */
     boolean getCallerContextEnabled() {
         for (AuditLogger logger : auditLoggers) {
@@ -1205,6 +1219,7 @@ public class FSNamesystem implements Namesystem, FSNamesystemMBean,
 
     /**
      * Start services required in active state
+     *
      * @throws IOException
      */
     void startActiveServices() throws IOException {
@@ -1427,7 +1442,9 @@ public class FSNamesystem implements Namesystem, FSNamesystemMBean,
         }
     }
 
-    /** Stop services required in standby state */
+    /**
+     * Stop services required in standby state
+     */
     void stopStandbyServices() throws IOException {
         HAServiceState curState = getState() == OBSERVER ? OBSERVER : STANDBY;
         LOG.info("Stopping services started for {} state", curState);
@@ -1456,11 +1473,9 @@ public class FSNamesystem implements Namesystem, FSNamesystemMBean,
     }
 
     /**
-     * @throws RetriableException
-     *           If 1) The NameNode is in SafeMode, 2) HA is enabled, and 3)
-     *           NameNode is in active state
-     * @throws SafeModeException
-     *           Otherwise if NameNode is in SafeMode.
+     * @throws RetriableException If 1) The NameNode is in SafeMode, 2) HA is enabled, and 3)
+     *                            NameNode is in active state
+     * @throws SafeModeException  Otherwise if NameNode is in SafeMode.
      */
     void checkNameNodeSafeMode(String errorMsg)
             throws RetriableException, SafeModeException {
@@ -1540,6 +1555,7 @@ public class FSNamesystem implements Namesystem, FSNamesystemMBean,
      * are ordered before non-shared directories, and any duplicates
      * are removed. The order they are specified in the configuration
      * is retained.
+     *
      * @return Collection of shared edits directories.
      * @throws IOException if multiple shared edits directories are configured
      */
@@ -1595,6 +1611,7 @@ public class FSNamesystem implements Namesystem, FSNamesystemMBean,
 
     /**
      * Returns edit directories that are shared between primary and secondary.
+     *
      * @param conf configuration
      * @return collection of edit directories from {@code conf}
      */
@@ -1678,17 +1695,23 @@ public class FSNamesystem implements Namesystem, FSNamesystemMBean,
         return this.fsLock.getWriteHoldCount();
     }
 
-    /** Lock the checkpoint lock */
+    /**
+     * Lock the checkpoint lock
+     */
     public void cpLock() {
         this.cpLock.lock();
     }
 
-    /** Lock the checkpoint lock interrupibly */
+    /**
+     * Lock the checkpoint lock interrupibly
+     */
     public void cpLockInterruptibly() throws InterruptedException {
         this.cpLock.lockInterruptibly();
     }
 
-    /** Unlock the checkpoint lock */
+    /**
+     * Unlock the checkpoint lock
+     */
     public void cpUnlock() {
         this.cpLock.unlock();
     }
@@ -1707,6 +1730,7 @@ public class FSNamesystem implements Namesystem, FSNamesystemMBean,
      * Get the creation time of the file system.
      * Notice that this time is initialized to NameNode format time, and updated
      * to upgrade time during upgrades.
+     *
      * @return time in milliseconds.
      * See {@link org.apache.hadoop.util.Time#now()}.
      */
@@ -1765,12 +1789,12 @@ public class FSNamesystem implements Namesystem, FSNamesystemMBean,
      * return a list of blocks &amp; their locations on {@code datanode} whose
      * total size is {@code size}
      *
-     * @param datanode on which blocks are located
-     * @param size total size of blocks
+     * @param datanode         on which blocks are located
+     * @param size             total size of blocks
      * @param minimumBlockSize each block should be of this minimum Block Size
-     * @param timeInterval prefer to get blocks which are belong to
-     *                     the cold files accessed before the time interval
-     * @param storageType the given storage type {@link StorageType}
+     * @param timeInterval     prefer to get blocks which are belong to
+     *                         the cold files accessed before the time interval
+     * @param storageType      the given storage type {@link StorageType}
      */
     public BlocksWithLocations getBlocks(DatanodeID datanode, long size, long
             minimumBlockSize, long timeInterval, StorageType storageType) throws IOException {
@@ -1790,6 +1814,7 @@ public class FSNamesystem implements Namesystem, FSNamesystemMBean,
 
     /**
      * Dump all metadata into specified file
+     *
      * @param filename
      */
     void metaSave(String filename) throws IOException {
@@ -1832,9 +1857,9 @@ public class FSNamesystem implements Namesystem, FSNamesystemMBean,
      * list across batches does not represent a consistent view of all open files.
      * TODO: HDFS-12969 - to report open files by type.
      *
-     * @param prevId the cursor INode id.
+     * @param prevId         the cursor INode id.
      * @param openFilesTypes types to filter the open files.
-     * @param path path to filter the open files.
+     * @param path           path to filter the open files.
      * @throws IOException
      */
     BatchedListEntries<OpenFileEntry> listOpenFiles(long prevId,
@@ -1940,6 +1965,7 @@ public class FSNamesystem implements Namesystem, FSNamesystemMBean,
     /////////////////////////////////////////////////////////
     /**
      * Set permissions for an existing file.
+     *
      * @param src
      * @param permission
      * @throws IOException
@@ -1970,6 +1996,7 @@ public class FSNamesystem implements Namesystem, FSNamesystemMBean,
 
     /**
      * Set owner for an existing file.
+     *
      * @param src
      * @param group
      * @param username
@@ -2002,6 +2029,7 @@ public class FSNamesystem implements Namesystem, FSNamesystemMBean,
 
     /**
      * Get block locations within the specified range.
+     *
      * @see ClientProtocol#getBlockLocations(String, long, long)
      */
     LocatedBlocks getBlockLocations(String clientMachine, String srcArg,
@@ -2104,10 +2132,11 @@ public class FSNamesystem implements Namesystem, FSNamesystemMBean,
      * Moves all the blocks from {@code srcs} and appends them to {@code target}
      * To avoid rollbacks we will verify validity of ALL of the args
      * before we start actual move.
-     *
+     * <p>
      * This does not support ".inodes" relative path
+     *
      * @param target target to concat into
-     * @param srcs file that will be concatenated
+     * @param srcs   file that will be concatenated
      * @throws IOException on error
      */
     void concat(String target, String[] srcs, boolean logRetryCache)
@@ -2172,7 +2201,7 @@ public class FSNamesystem implements Namesystem, FSNamesystemMBean,
      * block recovery to truncate the last block of the file.
      *
      * @return true if client does not need to wait for block recovery,
-     *         false if client needs to wait for block recovery.
+     * false if client needs to wait for block recovery.
      */
     boolean truncate(String src, long newLength, String clientName,
                      String clientMachine, long mtime) throws IOException,
@@ -2252,17 +2281,17 @@ public class FSNamesystem implements Namesystem, FSNamesystemMBean,
 
     /**
      * Set replication for an existing file.
-     *
+     * <p>
      * The NameNode sets new replication and schedules either replication of
      * under-replicated data blocks or removal of the excessive block copies
      * if the blocks are over-replicated.
      *
-     * @see ClientProtocol#setReplication(String, short)
-     * @param src file name
+     * @param src         file name
      * @param replication new replication
      * @return true if successful;
-     *         false if file does not exist or is a directory
+     * false if file does not exist or is a directory
      * @throws IOException
+     * @see ClientProtocol#setReplication(String, short)
      */
     boolean setReplication(final String src, final short replication)
             throws IOException {
@@ -2297,7 +2326,7 @@ public class FSNamesystem implements Namesystem, FSNamesystemMBean,
      * set storage policies.
      *
      * @param operationNameReadable Name of storage policy for exception text
-     * @param checkSuperUser Whether to check for super user privilege
+     * @param checkSuperUser        Whether to check for super user privilege
      * @throws IOException
      */
     private void checkStoragePolicyEnabled(final String operationNameReadable,
@@ -2316,7 +2345,7 @@ public class FSNamesystem implements Namesystem, FSNamesystemMBean,
     /**
      * Set the storage policy for a file or a directory.
      *
-     * @param src file/directory path
+     * @param src        file/directory path
      * @param policyName storage policy name
      * @throws IOException
      */
@@ -2434,8 +2463,7 @@ public class FSNamesystem implements Namesystem, FSNamesystemMBean,
     /**
      * Get the storage policy for a file or a directory.
      *
-     * @param src
-     *          file/directory path
+     * @param src file/directory path
      * @return storage policy object
      * @throws IOException
      */
@@ -2485,7 +2513,7 @@ public class FSNamesystem implements Namesystem, FSNamesystemMBean,
      * CryptoProtocolVersion from the list provided by the client. Since the
      * client may be newer, we need to handle unknown versions.
      *
-     * @param zone EncryptionZone of the file
+     * @param zone              EncryptionZone of the file
      * @param supportedVersions List of supported protocol versions
      * @return chosen protocol version
      * @throws IOException
@@ -2519,7 +2547,7 @@ public class FSNamesystem implements Namesystem, FSNamesystemMBean,
 
     /**
      * Create a new file entry in the namespace.
-     *
+     * <p>
      * For description of parameters and exceptions thrown see
      * {@link ClientProtocol#create}, except it returns valid file status upon
      * success
@@ -2669,11 +2697,11 @@ public class FSNamesystem implements Namesystem, FSNamesystemMBean,
      * Immediately revoke the lease of the current lease holder and start lease
      * recovery so that the file can be forced to be closed.
      *
-     * @param src the path of the file to start lease recovery
-     * @param holder the lease holder's name
+     * @param src           the path of the file to start lease recovery
+     * @param holder        the lease holder's name
      * @param clientMachine the client machine's name
      * @return true if the file is already closed or
-     *         if the lease can be released and the file can be closed.
+     * if the lease can be released and the file can be closed.
      * @throws IOException
      */
     boolean recoverLease(String src, String holder, String clientMachine)
@@ -2861,10 +2889,15 @@ public class FSNamesystem implements Namesystem, FSNamesystemMBean,
      * of the block, plus a set of machines.  The first on this list should
      * be where the client writes data.  Subsequent items in the list must
      * be provided in the connection to the first datanode.
-     *
+     * <p>
      * Make sure the previous blocks have been reported by datanodes and
      * are replicated.  Will return an empty 2-elt array if we want the
      * client to "try again later".
+     * todo * getAdditionalBlock()方法首先会检查文件系统状态，
+     * * 然后为新添加的数据块选择存放副本的Datanode，
+     * *
+     * * 最后构造Block对象并调用FSDirectory.addBlock()方法将Block对象加入
+     * * 文件对应的INode对象中。
      */
     LocatedBlock getAdditionalBlock(
             String src, long fileId, String clientName, ExtendedBlock previous,
@@ -2882,6 +2915,7 @@ public class FSNamesystem implements Namesystem, FSNamesystemMBean,
         readLock();
         try {
             checkOperation(OperationCategory.WRITE);
+            //todo       // 验证权限
             r = FSDirWriteFileOp.validateAddBlock(this, pc, src, fileId, clientName,
                     previous, onRetryBlock);
         } finally {
@@ -2893,7 +2927,7 @@ public class FSNamesystem implements Namesystem, FSNamesystemMBean,
             // This is a retry. Just return the last block.
             return onRetryBlock[0];
         }
-
+        //todo     //选取存储datanode节点
         DatanodeStorageInfo[] targets = FSDirWriteFileOp.chooseTargetForNewBlock(
                 blockManager, src, excludedNodes, favoredNodes, flags, r);
 
@@ -2902,6 +2936,7 @@ public class FSNamesystem implements Namesystem, FSNamesystemMBean,
         LocatedBlock lb;
         try {
             checkOperation(OperationCategory.WRITE);
+            //todo       //保存block
             lb = FSDirWriteFileOp.storeAllocatedBlock(
                     this, src, fileId, clientName, previous, targets);
         } finally {
@@ -2911,7 +2946,9 @@ public class FSNamesystem implements Namesystem, FSNamesystemMBean,
         return lb;
     }
 
-    /** @see ClientProtocol#getAdditionalDatanode */
+    /**
+     * @see ClientProtocol#getAdditionalDatanode
+     */
     LocatedBlock getAdditionalDatanode(String src, long fileId,
                                        final ExtendedBlock blk, final DatanodeInfo[] existings,
                                        final String[] storageIDs,
@@ -3005,15 +3042,18 @@ public class FSNamesystem implements Namesystem, FSNamesystemMBean,
         String src = iip.getPath();
         INode inode = iip.getLastINode();
         assert hasReadLock();
+        //todo     // HDFS文件不存在， 则抛出异常
         if (inode == null) {
             throw new FileNotFoundException("File does not exist: "
                     + leaseExceptionString(src, fileId, holder));
         }
+        //todo     // INode是一个目录， 则抛出异常
         if (!inode.isFile()) {
             throw new LeaseExpiredException("INode is not a regular file: "
                     + leaseExceptionString(src, fileId, holder));
         }
         final INodeFile file = inode.asFile();
+        //todo     //文件不处于构建中状态， 则抛出异常
         if (!file.isUnderConstruction()) {
             throw new LeaseExpiredException("File is not open for writing: "
                     + leaseExceptionString(src, fileId, holder));
@@ -3026,6 +3066,7 @@ public class FSNamesystem implements Namesystem, FSNamesystemMBean,
                     + leaseExceptionString(src, fileId, holder));
         }
         final String owner = file.getFileUnderConstructionFeature().getClientName();
+        //todo     // 租约信息 与LeaseManager记录的 不匹配， 则抛出异常
         if (holder != null && !owner.equals(holder)) {
             throw new LeaseExpiredException("Client (=" + holder
                     + ") is not the lease owner (=" + owner + ": "
@@ -3036,8 +3077,9 @@ public class FSNamesystem implements Namesystem, FSNamesystemMBean,
 
     /**
      * Complete in-progress write to the given file.
+     *
      * @return true if successful, false if the client should continue to retry
-     *         (e.g if not all blocks have reached minimum replication yet)
+     * (e.g if not all blocks have reached minimum replication yet)
      * @throws IOException on error (eg lease mismatch, file not open, file deleted)
      */
     boolean completeFile(final String src, String holder,
@@ -3066,6 +3108,7 @@ public class FSNamesystem implements Namesystem, FSNamesystemMBean,
 
     /**
      * Create new block with a unique block id and a new generation stamp.
+     *
      * @param blockType is the file under striping or contiguous layout?
      */
     Block createNewBlock(BlockType blockType) throws IOException {
@@ -3116,6 +3159,7 @@ public class FSNamesystem implements Namesystem, FSNamesystemMBean,
 
     /**
      * Change the indicated filename.
+     *
      * @deprecated Use {@link #renameTo(String, String, boolean,
      * Options.Rename...)} instead.
      */
@@ -3233,9 +3277,10 @@ public class FSNamesystem implements Namesystem, FSNamesystemMBean,
 
     /**
      * Remove leases and inodes related to a given path
-     * @param removedUCFiles INodes whose leases need to be released
-     * @param removedINodes Containing the list of inodes to be removed from
-     *                      inodesMap
+     *
+     * @param removedUCFiles      INodes whose leases need to be released
+     * @param removedINodes       Containing the list of inodes to be removed from
+     *                            inodesMap
      * @param acquireINodeMapLock Whether to acquire the lock for inode removal
      */
     void removeLeasesAndINodes(List<Long> removedUCFiles,
@@ -3264,17 +3309,15 @@ public class FSNamesystem implements Namesystem, FSNamesystemMBean,
     /**
      * Get the file info for a specific file.
      *
-     * @param src The string representation of the path to the file
-     * @param resolveLink whether to throw UnresolvedLinkException
-     *        if src refers to a symlink
-     *
-     * @param needLocation Include {@link LocatedBlocks} in result.
+     * @param src            The string representation of the path to the file
+     * @param resolveLink    whether to throw UnresolvedLinkException
+     *                       if src refers to a symlink
+     * @param needLocation   Include {@link LocatedBlocks} in result.
      * @param needBlockToken Include block tokens in {@link LocatedBlocks}
-     * @throws AccessControlException if access is denied
-     * @throws UnresolvedLinkException if a symlink is encountered.
-     *
      * @return object containing information regarding the file
-     *         or null if file not found
+     * or null if file not found
+     * @throws AccessControlException  if access is denied
+     * @throws UnresolvedLinkException if a symlink is encountered.
      * @throws StandbyException
      */
     HdfsFileStatus getFileInfo(final String src, boolean resolveLink,
@@ -3369,15 +3412,13 @@ public class FSNamesystem implements Namesystem, FSNamesystemMBean,
      * Get the content summary for a specific file/dir.
      *
      * @param src The string representation of the path to the file
-     *
-     * @throws AccessControlException if access is denied
-     * @throws UnresolvedLinkException if a symlink is encountered.
-     * @throws FileNotFoundException if no file exists
-     * @throws StandbyException
-     * @throws IOException for issues with writing to the audit log
-     *
      * @return object containing information regarding the file
-     *         or null if file not found
+     * or null if file not found
+     * @throws AccessControlException  if access is denied
+     * @throws UnresolvedLinkException if a symlink is encountered.
+     * @throws FileNotFoundException   if no file exists
+     * @throws StandbyException
+     * @throws IOException             for issues with writing to the audit log
      */
     ContentSummary getContentSummary(final String src) throws IOException {
         checkOperation(OperationCategory.READ);
@@ -3405,15 +3446,13 @@ public class FSNamesystem implements Namesystem, FSNamesystemMBean,
      * Get the quota usage for a specific file/dir.
      *
      * @param src The string representation of the path to the file
-     *
-     * @throws AccessControlException if access is denied
-     * @throws UnresolvedLinkException if a symlink is encountered.
-     * @throws FileNotFoundException if no file exists
-     * @throws StandbyException
-     * @throws IOException for issues with writing to the audit log
-     *
      * @return object containing information regarding the file
-     *         or null if file not found
+     * or null if file not found
+     * @throws AccessControlException  if access is denied
+     * @throws UnresolvedLinkException if a symlink is encountered.
+     * @throws FileNotFoundException   if no file exists
+     * @throws StandbyException
+     * @throws IOException             for issues with writing to the audit log
      */
     QuotaUsage getQuotaUsage(final String src) throws IOException {
         checkOperation(OperationCategory.READ);
@@ -3441,7 +3480,7 @@ public class FSNamesystem implements Namesystem, FSNamesystemMBean,
      * Set the namespace quota and storage space quota for a directory.
      * See {@link ClientProtocol#setQuota(String, long, long, StorageType)} for the
      * contract.
-     *
+     * <p>
      * Note: This does not support ".inodes" relative path.
      */
     void setQuota(String src, long nsQuota, long ssQuota, StorageType type)
@@ -3477,11 +3516,13 @@ public class FSNamesystem implements Namesystem, FSNamesystemMBean,
         logAuditEvent(true, operationName, src);
     }
 
-    /** Persist all metadata about this file.
-     * @param src The string representation of the path
-     * @param fileId The inode ID that we're fsyncing.  Older clients will pass
-     *               INodeId.GRANDFATHER_INODE_ID here.
-     * @param clientName The string representation of the client
+    /**
+     * Persist all metadata about this file.
+     *
+     * @param src             The string representation of the path
+     * @param fileId          The inode ID that we're fsyncing.  Older clients will pass
+     *                        INodeId.GRANDFATHER_INODE_ID here.
+     * @param clientName      The string representation of the client
      * @param lastBlockLength The length of the last block
      *                        under construction reported from client.
      * @throws IOException if path does not exist
@@ -3512,17 +3553,18 @@ public class FSNamesystem implements Namesystem, FSNamesystemMBean,
 
     /**
      * Move a file that is being written to be immutable.
-     * @param src The filename
-     * @param lease The lease for the client creating the file
+     *
+     * @param src                 The filename
+     * @param lease               The lease for the client creating the file
      * @param recoveryLeaseHolder reassign lease to this holder if the last block
-     *        needs recovery; keep current holder if null.
-     * @throws AlreadyBeingCreatedException if file is waiting to achieve minimal
-     *         replication;<br>
-     *         RecoveryInProgressException if lease recovery is in progress.<br>
-     *         IOException in case of an error.
+     *                            needs recovery; keep current holder if null.
      * @return true  if file has been successfully finalized and closed or
-     *         false if block recovery has been initiated. Since the lease owner
-     *         has been changed and logged, caller should call logSync().
+     * false if block recovery has been initiated. Since the lease owner
+     * has been changed and logged, caller should call logSync().
+     * @throws AlreadyBeingCreatedException if file is waiting to achieve minimal
+     *                                      replication;<br>
+     *                                      RecoveryInProgressException if lease recovery is in progress.<br>
+     *                                      IOException in case of an error.
      */
     boolean internalReleaseLease(Lease lease, String src, INodesInPath iip,
                                  String recoveryLeaseHolder) throws IOException {
@@ -3998,14 +4040,13 @@ public class FSNamesystem implements Namesystem, FSNamesystemMBean,
     /**
      * Get a partial listing of the indicated directory
      *
-     * @param src the directory name
-     * @param startAfter the name to start after
+     * @param src          the directory name
+     * @param startAfter   the name to start after
      * @param needLocation if blockLocations need to be returned
      * @return a partial listing starting after startAfter
-     *
-     * @throws AccessControlException if access is denied
+     * @throws AccessControlException  if access is denied
      * @throws UnresolvedLinkException if symbolic link is encountered
-     * @throws IOException if other I/O error occurred
+     * @throws IOException             if other I/O error occurred
      */
     DirectoryListing getListing(String src, byte[] startAfter,
                                 boolean needLocation)
@@ -4223,8 +4264,8 @@ public class FSNamesystem implements Namesystem, FSNamesystemMBean,
     /**
      * Get registrationID for datanodes based on the namespaceID.
      *
-     * @see #registerDatanode(DatanodeRegistration)
      * @return registration ID
+     * @see #registerDatanode(DatanodeRegistration)
      */
     String getRegistrationID() {
         return Storage.getRegistrationID(getFSImage().getStorage());
@@ -4234,7 +4275,7 @@ public class FSNamesystem implements Namesystem, FSNamesystemMBean,
      * The given node has reported in.  This method should:
      * 1) Record the heartbeat, so the datanode isn't timed out
      * 2) Adjust usage stats for future block allocation
-     *
+     * <p>
      * If a substantial amount of time passed since the last datanode
      * heartbeat then request an immediate block report.
      *
@@ -4287,13 +4328,13 @@ public class FSNamesystem implements Namesystem, FSNamesystemMBean,
      * compared to heartbeat handling.  It should avoid lock contention and
      * expensive computation.
      *
-     * @param nodeReg registration info for DataNode sending the lifeline
-     * @param reports storage reports from DataNode
-     * @param cacheCapacity cache capacity at DataNode
-     * @param cacheUsed cache used at DataNode
-     * @param xceiverCount estimated count of transfer threads running at DataNode
-     * @param xmitsInProgress count of transfers running at DataNode
-     * @param failedVolumes count of failed volumes at DataNode
+     * @param nodeReg              registration info for DataNode sending the lifeline
+     * @param reports              storage reports from DataNode
+     * @param cacheCapacity        cache capacity at DataNode
+     * @param cacheUsed            cache used at DataNode
+     * @param xceiverCount         estimated count of transfer threads running at DataNode
+     * @param xmitsInProgress      count of transfers running at DataNode
+     * @param failedVolumes        count of failed volumes at DataNode
      * @param volumeFailureSummary info on failed volumes at DataNode
      * @throws IOException if there is an error
      */
@@ -4330,6 +4371,7 @@ public class FSNamesystem implements Namesystem, FSNamesystemMBean,
 
     /**
      * Close file.
+     *
      * @param path
      * @param file
      */
@@ -4597,7 +4639,9 @@ public class FSNamesystem implements Namesystem, FSNamesystemMBean,
         return getNNStorage().getMostRecentCheckpointTime();
     }
 
-    /** @see ClientProtocol#getStats() */
+    /**
+     * @see ClientProtocol#getStats()
+     */
     long[] getStats() {
         final long[] stats = datanodeStatistics.getStats();
         stats[ClientProtocol.GET_STATS_LOW_REDUNDANCY_IDX] =
@@ -4619,6 +4663,7 @@ public class FSNamesystem implements Namesystem, FSNamesystemMBean,
      * Get statistics pertaining to blocks of type {@link BlockType#CONTIGUOUS}
      * in the filesystem.
      * <p>
+     *
      * @see ClientProtocol#getReplicatedBlockStats()
      */
     ReplicatedBlockStats getReplicatedBlockStats() {
@@ -4633,6 +4678,7 @@ public class FSNamesystem implements Namesystem, FSNamesystemMBean,
      * Get statistics pertaining to blocks of type {@link BlockType#STRIPED}
      * in the filesystem.
      * <p>
+     *
      * @see ClientProtocol#getECBlockGroupStats()
      */
     ECBlockGroupStats getECBlockGroupStats() {
@@ -4749,7 +4795,7 @@ public class FSNamesystem implements Namesystem, FSNamesystemMBean,
 
     /**
      * Returns the length of the wait Queue for the FSNameSystemLock.
-     *
+     * <p>
      * A larger number here indicates lots of threads are waiting for
      * FSNameSystemLock.
      *
@@ -5031,6 +5077,7 @@ public class FSNamesystem implements Namesystem, FSNamesystemMBean,
 
     /**
      * Enter safe mode. If resourcesLow is false, then we assume it is manual
+     *
      * @throws IOException
      */
     void enterSafeMode(boolean resourcesLow) throws IOException {
@@ -5059,6 +5106,7 @@ public class FSNamesystem implements Namesystem, FSNamesystemMBean,
 
     /**
      * Leave safe mode.
+     *
      * @param force true if to leave safe mode forcefully with -forceExit option
      */
     void leaveSafeMode(boolean force) {
@@ -5244,6 +5292,7 @@ public class FSNamesystem implements Namesystem, FSNamesystemMBean,
 
     /**
      * Get aggregated count of all blocks with low redundancy.
+     *
      * @deprecated - Use {@link #getLowRedundancyBlocks()} instead.
      */
     @Override // FSNamesystemMBean
@@ -5262,7 +5311,9 @@ public class FSNamesystem implements Namesystem, FSNamesystemMBean,
         return blockManager.getLowRedundancyBlocksCount();
     }
 
-    /** Returns number of blocks with corrupt replicas */
+    /**
+     * Returns number of blocks with corrupt replicas
+     */
     @Metric({"CorruptBlocks", "Number of blocks with corrupt replicas"})
     public long getCorruptReplicaBlocks() {
         return blockManager.getCorruptReplicaBlocksCount();
@@ -5453,11 +5504,11 @@ public class FSNamesystem implements Namesystem, FSNamesystemMBean,
     /**
      * Register following MBeans with their respective names.
      * FSNamesystemMBean:
-     *        "hadoop:service=NameNode,name=FSNamesystemState"
+     * "hadoop:service=NameNode,name=FSNamesystemState"
      * ReplicatedBlocksMBean:
-     *        "hadoop:service=NameNode,name=ReplicatedBlocksState"
+     * "hadoop:service=NameNode,name=ReplicatedBlocksState"
      * ECBlockGroupsMBean:
-     *        "hadoop:service=NameNode,name=ECBlockGroupsState"
+     * "hadoop:service=NameNode,name=ECBlockGroupsState"
      */
     private void registerMBean() {
         // We can only implement one MXBean interface, so we keep the old one.
@@ -5670,6 +5721,7 @@ public class FSNamesystem implements Namesystem, FSNamesystemMBean,
 
     /**
      * Increments, logs and then returns the block ID
+     *
      * @param blockType is the file under striping or contiguous layout?
      */
     private long nextBlockId(BlockType blockType) throws IOException {
@@ -5783,11 +5835,11 @@ public class FSNamesystem implements Namesystem, FSNamesystemMBean,
     /**
      * Get a new generation stamp together with an access token for
      * a block under construction.
-     *
+     * <p>
      * This method is called for recovering a failed write or setting up
      * a block for appended.
      *
-     * @param block a block
+     * @param block      a block
      * @param clientName the name of a client
      * @return a located block with a new generation stamp and an access token
      * @throws IOException if any error occurs
@@ -5843,9 +5895,9 @@ public class FSNamesystem implements Namesystem, FSNamesystemMBean,
      * Update a pipeline for a block under construction.
      *
      * @param clientName the name of the client
-     * @param oldBlock and old block
-     * @param newBlock a new block with a new generation stamp and length
-     * @param newNodes datanodes in the pipeline
+     * @param oldBlock   and old block
+     * @param newBlock   a new block with a new generation stamp and length
+     * @param newNodes   datanodes in the pipeline
      * @throws IOException if any error occurs
      */
     void updatePipeline(
@@ -5949,6 +6001,7 @@ public class FSNamesystem implements Namesystem, FSNamesystemMBean,
      * Release (unregister) backup node.
      * <p>
      * Find and remove the backup stream corresponding to the node.
+     *
      * @throws IOException
      */
     void releaseBackupNode(NamenodeRegistration registration)
@@ -5991,7 +6044,7 @@ public class FSNamesystem implements Namesystem, FSNamesystemMBean,
     }
 
     /**
-     * @param path Restrict corrupt files to this portion of namespace.
+     * @param path      Restrict corrupt files to this portion of namespace.
      * @param cookieTab Support for continuation; cookieTab  tells where
      *                  to start from
      * @return a list in which each entry describes a corrupt file/block
@@ -6110,6 +6163,7 @@ public class FSNamesystem implements Namesystem, FSNamesystemMBean,
 
     /**
      * Returns the DelegationTokenSecretManager instance in the namesystem.
+     *
      * @return delegation token secret manager object
      */
     DelegationTokenSecretManager getDelegationTokenSecretManager() {
@@ -6163,11 +6217,10 @@ public class FSNamesystem implements Namesystem, FSNamesystemMBean,
     }
 
     /**
-     *
      * @param token token to renew
      * @return new expiryTime of the token
      * @throws InvalidToken if {@code token} is invalid
-     * @throws IOException on other errors
+     * @throws IOException  on other errors
      */
     long renewDelegationToken(Token<DelegationTokenIdentifier> token)
             throws InvalidToken, IOException {
@@ -6207,7 +6260,6 @@ public class FSNamesystem implements Namesystem, FSNamesystemMBean,
     }
 
     /**
-     *
      * @param token token to cancel
      * @throws IOException on error
      */
@@ -6240,7 +6292,7 @@ public class FSNamesystem implements Namesystem, FSNamesystemMBean,
     }
 
     /**
-     * @param out save state of the secret manager
+     * @param out    save state of the secret manager
      * @param sdPath String storage directory path
      */
     void saveSecretManagerStateCompat(DataOutputStream out, String sdPath)
@@ -6307,7 +6359,6 @@ public class FSNamesystem implements Namesystem, FSNamesystemMBean,
     }
 
     /**
-     *
      * @return true if delegation token operation is allowed
      */
     private boolean isAllowedDelegationTokenOp() throws IOException {
@@ -6323,6 +6374,7 @@ public class FSNamesystem implements Namesystem, FSNamesystemMBean,
 
     /**
      * Returns authentication method used to establish the connection.
+     *
      * @return AuthenticationMethod used to establish connection
      * @throws IOException
      */
@@ -6353,8 +6405,8 @@ public class FSNamesystem implements Namesystem, FSNamesystemMBean,
     /**
      * Log fsck event in the audit log.
      *
-     * @param succeeded Whether authorization succeeded.
-     * @param src Path of affected source file.
+     * @param succeeded     Whether authorization succeeded.
+     * @param src           Path of affected source file.
      * @param remoteAddress Remote address of the request.
      * @throws IOException if {@link #getRemoteUser()} fails.
      */
@@ -6753,7 +6805,9 @@ public class FSNamesystem implements Namesystem, FSNamesystemMBean,
                 " from " + VersionInfo.getBranch();
     }
 
-    /** @return the block manager. */
+    /**
+     * @return the block manager.
+     */
     public BlockManager getBlockManager() {
         return blockManager;
     }
@@ -6763,25 +6817,33 @@ public class FSNamesystem implements Namesystem, FSNamesystemMBean,
         this.blockManager = bm;
     }
 
-    /** @return the FSDirectory. */
+    /**
+     * @return the FSDirectory.
+     */
     @Override
     public FSDirectory getFSDirectory() {
         return dir;
     }
 
-    /** Set the FSDirectory. */
+    /**
+     * Set the FSDirectory.
+     */
     @VisibleForTesting
     public void setFSDirectory(FSDirectory dir) {
         this.dir = dir;
     }
 
-    /** @return the cache manager. */
+    /**
+     * @return the cache manager.
+     */
     @Override
     public CacheManager getCacheManager() {
         return cacheManager;
     }
 
-    /** @return the ErasureCodingPolicyManager. */
+    /**
+     * @return the ErasureCodingPolicyManager.
+     */
     public ErasureCodingPolicyManager getErasureCodingPolicyManager() {
         return ErasureCodingPolicyManager.getInstance();
     }
@@ -6828,11 +6890,12 @@ public class FSNamesystem implements Namesystem, FSNamesystemMBean,
     /**
      * Get the list of corrupt blocks and corresponding full file path
      * including snapshots in given snapshottable directories.
-     * @param path Restrict corrupt files to this portion of namespace.
+     *
+     * @param path              Restrict corrupt files to this portion of namespace.
      * @param snapshottableDirs Snapshottable directories. Passing in null
      *                          will only return corrupt blocks in non-snapshots.
-     * @param cookieTab Support for continuation; cookieTab tells where
-     *                  to start from.
+     * @param cookieTab         Support for continuation; cookieTab tells where
+     *                          to start from.
      * @return a list in which each entry describes a corrupt file/block
      * @throws IOException
      */
@@ -6896,8 +6959,9 @@ public class FSNamesystem implements Namesystem, FSNamesystemMBean,
 
     /**
      * Verifies that the given identifier and password are valid and match.
+     *
      * @param identifier Token identifier.
-     * @param password Password in the token.
+     * @param password   Password in the token.
      */
     public synchronized void verifyToken(DelegationTokenIdentifier identifier,
                                          byte[] password) throws InvalidToken, RetriableException {
@@ -6945,7 +7009,9 @@ public class FSNamesystem implements Namesystem, FSNamesystemMBean,
         return snapshotManager;
     }
 
-    /** Allow snapshot on a directory. */
+    /**
+     * Allow snapshot on a directory.
+     */
     void allowSnapshot(String path) throws IOException {
         checkOperation(OperationCategory.WRITE);
         final String operationName = "allowSnapshot";
@@ -6962,7 +7028,9 @@ public class FSNamesystem implements Namesystem, FSNamesystemMBean,
         logAuditEvent(true, operationName, path, null, null);
     }
 
-    /** Disallow snapshot on a directory. */
+    /**
+     * Disallow snapshot on a directory.
+     */
     void disallowSnapshot(String path) throws IOException {
         checkOperation(OperationCategory.WRITE);
         final String operationName = "disallowSnapshot";
@@ -6981,6 +7049,7 @@ public class FSNamesystem implements Namesystem, FSNamesystemMBean,
 
     /**
      * Create a snapshot
+     *
      * @param snapshotRoot The directory path where the snapshot is taken
      * @param snapshotName The name of the snapshot
      */
@@ -7013,7 +7082,8 @@ public class FSNamesystem implements Namesystem, FSNamesystemMBean,
 
     /**
      * Rename a snapshot
-     * @param path The directory path where the snapshot was taken
+     *
+     * @param path            The directory path where the snapshot was taken
      * @param snapshotOldName Old snapshot name
      * @param snapshotNewName New snapshot name
      * @throws SafeModeException
@@ -7053,6 +7123,7 @@ public class FSNamesystem implements Namesystem, FSNamesystemMBean,
      * Get the list of snapshottable directories that are owned
      * by the current user. Return all the snapshottable directories if the
      * current user is a super user.
+     *
      * @return The list of all the current snapshottable directories.
      * @throws IOException If an I/O error occurred.
      */
@@ -7116,15 +7187,15 @@ public class FSNamesystem implements Namesystem, FSNamesystemMBean,
      * Get the difference between two snapshots (or between a snapshot and the
      * current status) of a snapshottable directory.
      *
-     * @param path The full path of the snapshottable directory.
+     * @param path         The full path of the snapshottable directory.
      * @param fromSnapshot Name of the snapshot to calculate the diff from. Null
-     *          or empty string indicates the current tree.
-     * @param toSnapshot Name of the snapshot to calculated the diff to. Null or
-     *          empty string indicates the current tree.
+     *                     or empty string indicates the current tree.
+     * @param toSnapshot   Name of the snapshot to calculated the diff to. Null or
+     *                     empty string indicates the current tree.
      * @return A report about the difference between {@code fromSnapshot} and
-     *         {@code toSnapshot}. Modified/deleted/created/renamed files and
-     *         directories belonging to the snapshottable directories are listed
-     *         and labeled as M/-/+/R respectively.
+     * {@code toSnapshot}. Modified/deleted/created/renamed files and
+     * directories belonging to the snapshottable directories are listed
+     * and labeled as M/-/+/R respectively.
      * @throws IOException
      */
     SnapshotDiffReport getSnapshotDiffReport(String path,
@@ -7180,24 +7251,22 @@ public class FSNamesystem implements Namesystem, FSNamesystemMBean,
      * Get the difference between two snapshots (or between a snapshot and the
      * current status) of a snapshottable directory.
      *
-     * @param path The full path of the snapshottable directory.
+     * @param path         The full path of the snapshottable directory.
      * @param fromSnapshot Name of the snapshot to calculate the diff from. Null
-     *          or empty string indicates the current tree.
-     * @param toSnapshot Name of the snapshot to calculated the diff to. Null or
-     *          empty string indicates the current tree.
-     * @param startPath
-     *          path relative to the snapshottable root directory from where the
-     *          snapshotdiff computation needs to start across multiple rpc calls
-     * @param index
-     *           index in the created or deleted list of the directory at which
-     *           the snapshotdiff computation stopped during the last rpc call
-     *           as the no of entries exceeded the snapshotdiffentry limit. -1
-     *           indicates, the snapshotdiff compuatation needs to start right
-     *           from the startPath provided.
+     *                     or empty string indicates the current tree.
+     * @param toSnapshot   Name of the snapshot to calculated the diff to. Null or
+     *                     empty string indicates the current tree.
+     * @param startPath    path relative to the snapshottable root directory from where the
+     *                     snapshotdiff computation needs to start across multiple rpc calls
+     * @param index        index in the created or deleted list of the directory at which
+     *                     the snapshotdiff computation stopped during the last rpc call
+     *                     as the no of entries exceeded the snapshotdiffentry limit. -1
+     *                     indicates, the snapshotdiff compuatation needs to start right
+     *                     from the startPath provided.
      * @return A partial report about the difference between {@code fromSnapshot}
-     *         and {@code toSnapshot}. Modified/deleted/created/renamed files and
-     *         directories belonging to the snapshottable directories are listed
-     *         and labeled as M/-/+/R respectively.
+     * and {@code toSnapshot}. Modified/deleted/created/renamed files and
+     * directories belonging to the snapshottable directories are listed
+     * and labeled as M/-/+/R respectively.
      * @throws IOException
      */
     SnapshotDiffReportListing getSnapshotDiffReportListing(String path,
@@ -7238,6 +7307,7 @@ public class FSNamesystem implements Namesystem, FSNamesystemMBean,
 
     /**
      * Delete a snapshot of a snapshottable directory
+     *
      * @param snapshotRoot The snapshottable directory
      * @param snapshotName The name of the to-be-deleted snapshot
      * @throws SafeModeException
@@ -7304,6 +7374,7 @@ public class FSNamesystem implements Namesystem, FSNamesystemMBean,
 
     /**
      * Remove a list of INodeDirectorySnapshottable from the SnapshotManager
+     *
      * @param toRemove the list of INodeDirectorySnapshottable to be removed
      */
     void removeSnapshottableDirs(List<INodeDirectory> toRemove) {
@@ -7366,6 +7437,7 @@ public class FSNamesystem implements Namesystem, FSNamesystemMBean,
 
     /**
      * Update internal state to indicate that a rolling upgrade is in progress.
+     *
      * @param startTime rolling upgrade start time
      */
     void startRollingUpgradeInternal(long startTime)
@@ -7449,7 +7521,9 @@ public class FSNamesystem implements Namesystem, FSNamesystemMBean,
         return new RollingUpgradeInfo.Bean(upgradeInfo);
     }
 
-    /** Is rolling upgrade in progress? */
+    /**
+     * Is rolling upgrade in progress?
+     */
     public boolean isRollingUpgrade() {
         return rollingUpgradeInfo != null && !rollingUpgradeInfo.isFinalized();
     }
@@ -7502,7 +7576,7 @@ public class FSNamesystem implements Namesystem, FSNamesystemMBean,
      *
      * @param f feature to check
      * @throws HadoopIllegalArgumentException if the current layout version in
-     *     effect is insufficient to support the feature
+     *                                        effect is insufficient to support the feature
      */
     private void requireEffectiveLayoutVersionForFeature(Feature f)
             throws HadoopIllegalArgumentException {
@@ -8109,9 +8183,10 @@ public class FSNamesystem implements Namesystem, FSNamesystemMBean,
 
     /**
      * Set an erasure coding policy on the given path.
-     * @param srcArg  The path of the target directory.
+     *
+     * @param srcArg       The path of the target directory.
      * @param ecPolicyName The erasure coding policy to set on the target
-     *                    directory.
+     *                     directory.
      * @throws AccessControlException  if the caller is not the superuser.
      * @throws UnresolvedLinkException if the path can't be resolved.
      * @throws SafeModeException       if the Namenode is in safe mode.
@@ -8144,7 +8219,8 @@ public class FSNamesystem implements Namesystem, FSNamesystemMBean,
 
     /**
      * Add multiple erasure coding policies to the ErasureCodingPolicyManager.
-     * @param policies The policies to add.
+     *
+     * @param policies      The policies to add.
      * @param logRetryCache whether to record RPC ids in editlog for retry cache
      *                      rebuilding
      * @return The according result of add operation.
@@ -8184,7 +8260,8 @@ public class FSNamesystem implements Namesystem, FSNamesystemMBean,
 
     /**
      * Remove an erasure coding policy.
-     * @param ecPolicyName the name of the policy to be removed
+     *
+     * @param ecPolicyName  the name of the policy to be removed
      * @param logRetryCache whether to record RPC ids in editlog for retry cache
      *                      rebuilding
      * @throws IOException
@@ -8210,7 +8287,8 @@ public class FSNamesystem implements Namesystem, FSNamesystemMBean,
 
     /**
      * Enable an erasure coding policy.
-     * @param ecPolicyName the name of the policy to be enabled
+     *
+     * @param ecPolicyName  the name of the policy to be enabled
      * @param logRetryCache whether to record RPC ids in editlog for retry cache
      *                      rebuilding
      * @return
@@ -8246,7 +8324,8 @@ public class FSNamesystem implements Namesystem, FSNamesystemMBean,
 
     /**
      * Disable an erasure coding policy.
-     * @param ecPolicyName the name of the policy to be disabled
+     *
+     * @param ecPolicyName  the name of the policy to be disabled
      * @param logRetryCache whether to record RPC ids in editlog for retry cache
      *                      rebuilding
      * @throws IOException
@@ -8281,7 +8360,8 @@ public class FSNamesystem implements Namesystem, FSNamesystemMBean,
 
     /**
      * Unset an erasure coding policy from the given path.
-     * @param srcArg  The path of the target directory.
+     *
+     * @param srcArg The path of the target directory.
      * @throws AccessControlException  if the caller is not the superuser.
      * @throws UnresolvedLinkException if the path can't be resolved.
      * @throws SafeModeException       if the Namenode is in safe mode.
@@ -8312,6 +8392,7 @@ public class FSNamesystem implements Namesystem, FSNamesystemMBean,
     /**
      * Verifies if the given policies are supported in the given cluster setup.
      * If not policy is specified checks for all enabled policies.
+     *
      * @param policyNames name of policies.
      * @return the result if the given policies are supported in the cluster setup
      * @throws IOException
@@ -8571,7 +8652,7 @@ public class FSNamesystem implements Namesystem, FSNamesystemMBean,
      * directories. Create them if not.
      * Only the active NameNode needs to execute this in HA setup once it is out
      * of safe mode.
-     *
+     * <p>
      * The function gets called while exiting safe mode or post starting the
      * services in Active NameNode, but comes into effect post whichever event
      * happens later.
@@ -8908,6 +8989,7 @@ public class FSNamesystem implements Namesystem, FSNamesystemMBean,
 
     /**
      * Check whether operation is supported.
+     *
      * @param operationName the name of operation.
      * @throws UnsupportedActionException throws UAE if not supported.
      */

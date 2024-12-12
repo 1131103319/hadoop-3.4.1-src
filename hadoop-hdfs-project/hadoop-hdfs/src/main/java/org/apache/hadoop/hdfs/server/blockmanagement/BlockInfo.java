@@ -17,18 +17,18 @@
  */
 package org.apache.hadoop.hdfs.server.blockmanagement;
 
-import java.io.IOException;
-import java.util.Iterator;
-import java.util.LinkedList;
-import java.util.List;
-
-import org.apache.hadoop.util.Preconditions;
 import org.apache.hadoop.classification.InterfaceAudience;
 import org.apache.hadoop.fs.StorageType;
 import org.apache.hadoop.hdfs.protocol.Block;
 import org.apache.hadoop.hdfs.protocol.BlockType;
 import org.apache.hadoop.hdfs.server.common.HdfsServerConstants.BlockUCState;
 import org.apache.hadoop.util.LightWeightGSet;
+import org.apache.hadoop.util.Preconditions;
+
+import java.io.IOException;
+import java.util.Iterator;
+import java.util.LinkedList;
+import java.util.List;
 
 import static org.apache.hadoop.hdfs.server.namenode.INodeId.INVALID_INODE_ID;
 
@@ -37,6 +37,9 @@ import static org.apache.hadoop.hdfs.server.namenode.INodeId.INVALID_INODE_ID;
  * maintains 1) the {@link BlockCollection} it is part of, and 2) datanodes
  * where the replicas of the block, or blocks belonging to the erasure coding
  * block group, are stored.
+ * todo BlockInfo类扩展自Block类， 是Block类的补充说明。
+ *   BlockInfo类定义了replication字段保存该数据块的副本数. 定义了bcId 用于标识block的ID.
+ *   BlockInfo类定义了storages字段保存这个Block的副本存储在哪些数据节点上， storages是一个DatanodeStorageInfo类型的数组.
  */
 @InterfaceAudience.Private
 public abstract class BlockInfo extends Block
@@ -395,6 +398,10 @@ public abstract class BlockInfo extends Block
 
   /**
    * Add/Update the under construction feature.
+   * todo * 当客户端对数据块进行追加写操作时会调用这个方法，
+   *    *
+   *    * 它将一个BlockInfo对象转换为 BlockUnderConstructionFeature 对象，
+   *    * 也就是将该BlockInfo对应的数据块状态变为了构建中状态
    */
   public void convertToBlockUnderConstruction(BlockUCState s,
       DatanodeStorageInfo[] targets) {

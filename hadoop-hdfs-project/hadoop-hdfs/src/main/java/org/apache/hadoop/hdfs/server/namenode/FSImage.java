@@ -874,6 +874,18 @@ public class FSImage implements Closeable {
         return loadEdits(editStreams, target, Long.MAX_VALUE, null, null);
     }
 
+    /**
+     * todo * FSImage.loadEdits()方法会构造一个FSEditLogLoader对象，
+     *    * 然后遍历Namenode所有存储路径上保存的editlog文件的输入流
+     *    * 并调用FSEditLogLoader.loadFSEdits()方法加载指定路径上的editlog文件。
+     * @param editStreams
+     * @param target
+     * @param maxTxnsToRead
+     * @param startOpt
+     * @param recovery
+     * @return
+     * @throws IOException
+     */
     public long loadEdits(Iterable<EditLogInputStream> editStreams,
                           FSNamesystem target, long maxTxnsToRead,
                           StartupOption startOpt, MetaRecoveryContext recovery)
@@ -881,13 +893,15 @@ public class FSImage implements Closeable {
         if (LOG.isDebugEnabled()) {
             LOG.debug("About to load edits:\n  {}.", Joiner.on("\n  ").join(editStreams));
         }
-
+        //todo     //记录命名空间中加载的最新的事务id
         long prevLastAppliedTxId = lastAppliedTxId;
         long remainingReadTxns = maxTxnsToRead;
         try {
+            //todo       //构造FSEditLogLoader对象用于加栽editlog文件
             FSEditLogLoader loader = new FSEditLogLoader(target, lastAppliedTxId);
 
             // Load latest edits
+            //todo       //遍历所有存储路径上editlog文件对应的输入流
             for (EditLogInputStream editIn : editStreams) {
                 LogAction logAction = loadEditLogHelper.record();
                 if (logAction.shouldLog()) {
@@ -900,6 +914,7 @@ public class FSImage implements Closeable {
                             (lastAppliedTxId + 1) + logSuppressed);
                 }
                 try {
+                    //todo           //调用FSEditLogLoader.loadFSEdits()从某个存储路径上的editlog文件加载修改操作
                     remainingReadTxns -= loader.loadFSEdits(editIn, lastAppliedTxId + 1,
                             remainingReadTxns, startOpt, recovery);
                 } finally {
@@ -917,6 +932,7 @@ public class FSImage implements Closeable {
                 }
             }
         } finally {
+            //todo       //关闭所有editlog文件的输入流
             FSEditLog.closeAllStreams(editStreams);
         }
         return lastAppliedTxId - prevLastAppliedTxId;
@@ -948,8 +964,9 @@ public class FSImage implements Closeable {
         // BlockPoolId is required when the FsImageLoader loads the rolling upgrade
         // information. Make sure the ID is properly set.
         target.setBlockPoolId(this.getBlockPoolID());
-
+        //todo     //获取加载器 FSImageFormat.LoaderDelegator
         FSImageFormat.LoaderDelegator loader = FSImageFormat.newLoader(conf, target);
+        //todo     //加载文件
         loader.load(curFile, requireSameLayoutVersion);
 
         // Check that the image digest we loaded matches up with what

@@ -17,18 +17,23 @@
  */
 package org.apache.hadoop.hdfs.server.blockmanagement;
 
-import java.util.Iterator;
-import java.util.concurrent.atomic.LongAdder;
-
 import org.apache.hadoop.hdfs.protocol.Block;
 import org.apache.hadoop.hdfs.server.namenode.INodeId;
 import org.apache.hadoop.util.GSet;
 import org.apache.hadoop.util.LightWeightGSet;
 
+import java.util.Iterator;
+import java.util.concurrent.atomic.LongAdder;
+
 /**
  * This class maintains the map from a block to its metadata.
  * block's metadata currently includes blockCollection it belongs to and
  * the datanodes that store the block.
+ * todo BlocksMap是Namenode上与数据块相关的最重要的类， 它管理着Namenode上数据块的元数据， 包括当前数据块属于哪个HDFS文件，
+ *  以及当前数据块保存在哪些Datanode上。 当Datanode启动时， 会对Datanode的本地磁盘进行扫描，
+ *  并将当前Datanode上保存的数据块信息汇报到Namenode。 Namenode收到Datanode的汇报信息后，
+ *  会建立数据块与保存这个数据块的数据节点的对应关系， 并将这个信息保存在BlocksMap中。
+ *  所以无论是获取某个数据块对应的HDFS文件， 还是获取数据块保存在哪些数据节点上， 都需要通过BlocksMap对象.
  */
 class BlocksMap {
   public static class StorageIterator implements Iterator<DatanodeStorageInfo> {
@@ -64,8 +69,9 @@ class BlocksMap {
   }
 
   /** Constant {@link LightWeightGSet} capacity. */
+  //todo capacity[容量]
   private final int capacity;
-  
+  //todo blocks
   private GSet<Block, BlockInfo> blocks;
 
   private final LongAdder totalReplicatedBlocks = new LongAdder();

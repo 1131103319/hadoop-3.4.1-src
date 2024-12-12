@@ -337,12 +337,19 @@ public final class FSImageFormatProtobuf {
                     threads);
             return executorService;
         }
+        //todo
+        // loadInternal()方法会打开fsimage文件通道，
+        // 然后读取fsimage文件中的FileSummary对象，
+        // FileSummary对象中记录了fsimage中保存的所有section的信息。
+        // loadInternal()会对FileSummary对象中保存的section排序，
+        // 然后遍历每个section并调用对应的方法从fsimage文件中加载这个section。
 
         private void loadInternal(RandomAccessFile raFile, FileInputStream fin)
                 throws IOException {
             if (!FSImageUtil.checkFileFormat(raFile)) {
                 throw new IOException("Unrecognized file format");
             }
+            //todo       // 从fsimage文件末尾加载FileSummary， 也就是fsimage文件内容的描述
             FileSummary summary = FSImageUtil.loadSummary(raFile);
             if (requireSameLayoutVersion && summary.getLayoutVersion() !=
                     HdfsServerConstants.NAMENODE_LAYOUT_VERSION) {
@@ -350,9 +357,10 @@ public final class FSImageFormatProtobuf {
                         " is not equal to the software version " +
                         HdfsServerConstants.NAMENODE_LAYOUT_VERSION);
             }
-
+            //todo       //获取通道
             FileChannel channel = fin.getChannel();
-
+            //todo // 构造FSImageFormatPBINode.Loader和FSImageFormatPBSnapshot.
+            //      // Loader加载INode以及Snapshot
             FSImageFormatPBINode.Loader inodeLoader = new FSImageFormatPBINode.Loader(
                     fsn, this);
             FSImageFormatPBSnapshot.Loader snapshotLoader = new FSImageFormatPBSnapshot.Loader(
@@ -360,6 +368,7 @@ public final class FSImageFormatProtobuf {
 
             ArrayList<FileSummary.Section> sections = Lists.newArrayList(summary
                     .getSectionsList());
+            //todo       //对fsimage文件描述中记录的sections进行排序
             Collections.sort(sections, new Comparator<FileSummary.Section>() {
                 @Override
                 public int compare(FileSummary.Section s1, FileSummary.Section s2) {
@@ -390,8 +399,9 @@ public final class FSImageFormatProtobuf {
             if (loadInParallel) {
                 executorService = getParallelExecutorService();
             }
-
+            //todo       //遍历每个section， 并调用对应的方法加载这个section
             for (FileSummary.Section s : sections) {
+                //todo         //在通道中定位这个section的起始位置
                 channel.position(s.getOffset());
                 InputStream in = new BufferedInputStream(new LimitInputStream(fin,
                         s.getLength()));
@@ -406,6 +416,7 @@ public final class FSImageFormatProtobuf {
                 }
 
                 ArrayList<FileSummary.Section> stageSubSections;
+                //todo         //调用对应的方法加载不同的section
                 switch (sectionName) {
                     case NS_INFO:
                         loadNameSystemSection(in);
@@ -798,13 +809,17 @@ public final class FSImageFormatProtobuf {
             ByteBuffer.wrap(lengthBytes).asIntBuffer().put(length);
             out.write(lengthBytes);
         }
-
+        //todo // saveINodes()方法构造了一个FSImageFormatPBINode.Saver对象，
+        //    // 并调用这个对象对应的方法保存文件系统目录树中的INode信息、 INodeDirectory信息，
+        //    // 以及处于构建状态的文件信息
         private long saveInodes(FileSummary.Builder summary) throws IOException {
             FSImageFormatPBINode.Saver saver = new FSImageFormatPBINode.Saver(this,
                     summary);
-
+            //todo       // 保存INode信息是由FSImageFormatPBINode.Saver.serializeINodeSection()方法实现的
             saver.serializeINodeSection(sectionOutputStream);
+            //todo       // 保存info目录信息
             saver.serializeINodeDirectorySection(sectionOutputStream);
+            //todo       // 租约管理
             saver.serializeFilesUCSection(sectionOutputStream);
 
             return saver.getNumImageErrors();

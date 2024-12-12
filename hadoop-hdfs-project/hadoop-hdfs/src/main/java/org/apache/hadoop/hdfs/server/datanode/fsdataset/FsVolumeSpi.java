@@ -17,15 +17,6 @@
  */
 package org.apache.hadoop.hdfs.server.datanode.fsdataset;
 
-import java.io.Closeable;
-import java.io.File;
-import java.io.IOException;
-import java.net.URI;
-import java.nio.channels.ClosedChannelException;
-import java.util.Collection;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.DF;
 import org.apache.hadoop.fs.StorageType;
@@ -38,6 +29,15 @@ import org.apache.hadoop.hdfs.server.datanode.FileIoProvider;
 import org.apache.hadoop.hdfs.server.datanode.StorageLocation;
 import org.apache.hadoop.hdfs.server.datanode.checker.Checkable;
 import org.apache.hadoop.hdfs.server.datanode.checker.VolumeCheckResult;
+
+import java.io.Closeable;
+import java.io.File;
+import java.io.IOException;
+import java.net.URI;
+import java.nio.channels.ClosedChannelException;
+import java.util.Collection;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * This is an interface for the underlying volume.
@@ -55,15 +55,19 @@ public interface FsVolumeSpi
   FsVolumeReference obtainReference() throws ClosedChannelException;
 
   /** @return the StorageUuid of the volume */
+  //todo ■ getStorageID()： 获取当前存储目录的StorageUuId。
   String getStorageID();
 
   /** @return a list of block pools. */
+  //todo ■ getBlockPoolList()： 获取当前存储目录下的块池列表， 这里返回的是当前存储目录下保存的所有块池的块池id(blockPoolId） 。
   String[] getBlockPoolList();
 
   /** @return the available storage space in bytes. */
+  //todo ■ getAvailabe()： 获取当前存储目录的可用空间。
   long getAvailable() throws IOException;
 
   /** @return the base path to the volume */
+  //todo ■ getBasePath()： 获取当前存储目录的根路径。
   URI getBaseURI();
 
   DF getUsageStats(Configuration conf);
@@ -72,9 +76,11 @@ public interface FsVolumeSpi
   StorageLocation getStorageLocation();
 
   /** @return the {@link StorageType} of the volume */
+  //todo ■ getStorageType()： 获取当前存储目录的存储类型， 存储目录类型可以是内存、SSD或者磁盘。
   StorageType getStorageType();
 
   /** Returns true if the volume is NOT backed by persistent storage. */
+  //todo ■ isTransientStorage()： 判断当前卷是否有与之对应的持久化磁盘。
   boolean isTransientStorage();
 
   /** Returns true if the volume is backed by RAM storage. */
@@ -84,11 +90,13 @@ public interface FsVolumeSpi
    * Reserve disk space for a block (RBW or Re-replicating)
    * so a writer does not run out of space before the block is full.
    */
+  //todo ■ reserveSpaceForReplica()： 对RBW状态的数据块预留磁盘空间， 这样写入数据块时就不会出现磁盘空间不足的情况了。
   void reserveSpaceForReplica(long bytesToReserve);
 
   /**
    * Release disk space previously reserved for block opened for write.
    */
+  //todo ■ releaseReservedSpace()： 释放预留的空间。
   void releaseReservedSpace(long bytesToRelease);
 
   /**

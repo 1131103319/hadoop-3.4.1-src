@@ -17,34 +17,15 @@
  */
 package org.apache.hadoop.hdfs.tools;
 
-import static org.apache.hadoop.hdfs.DFSConfigKeys.DFS_NAMENODE_KEYTAB_FILE_KEY;
-import static org.apache.hadoop.hdfs.DFSConfigKeys.DFS_NAMENODE_KERBEROS_PRINCIPAL_KEY;
-import static org.apache.hadoop.util.ExitUtil.terminate;
-
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.net.HttpURLConnection;
-import java.net.InetSocketAddress;
-import java.net.URL;
-import java.util.ArrayList;
-import java.util.List;
-
-import org.apache.hadoop.classification.VisibleForTesting;
-import org.apache.hadoop.fs.CommonConfigurationKeys;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.apache.hadoop.HadoopIllegalArgumentException;
 import org.apache.hadoop.classification.InterfaceAudience;
+import org.apache.hadoop.classification.VisibleForTesting;
 import org.apache.hadoop.conf.Configuration;
+import org.apache.hadoop.fs.CommonConfigurationKeys;
 import org.apache.hadoop.ha.HAServiceTarget;
 import org.apache.hadoop.ha.HealthMonitor;
 import org.apache.hadoop.ha.ZKFailoverController;
-import org.apache.hadoop.hdfs.DFSConfigKeys;
-import org.apache.hadoop.hdfs.DFSUtil;
-import org.apache.hadoop.hdfs.DFSUtilClient;
-import org.apache.hadoop.hdfs.HAUtil;
-import org.apache.hadoop.hdfs.HDFSPolicyProvider;
-import org.apache.hadoop.hdfs.HdfsConfiguration;
+import org.apache.hadoop.hdfs.*;
 import org.apache.hadoop.hdfs.server.namenode.NameNode;
 import org.apache.hadoop.hdfs.server.namenode.ha.proto.HAZKInfoProtos.ActiveNodeInfo;
 import org.apache.hadoop.io.IOUtils;
@@ -54,10 +35,23 @@ import org.apache.hadoop.security.SecurityUtil;
 import org.apache.hadoop.security.UserGroupInformation;
 import org.apache.hadoop.security.authorize.AccessControlList;
 import org.apache.hadoop.security.authorize.PolicyProvider;
+import org.apache.hadoop.thirdparty.protobuf.InvalidProtocolBufferException;
 import org.apache.hadoop.util.GenericOptionsParser;
 import org.apache.hadoop.util.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-import org.apache.hadoop.thirdparty.protobuf.InvalidProtocolBufferException;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.net.HttpURLConnection;
+import java.net.InetSocketAddress;
+import java.net.URL;
+import java.util.ArrayList;
+import java.util.List;
+
+import static org.apache.hadoop.hdfs.DFSConfigKeys.DFS_NAMENODE_KERBEROS_PRINCIPAL_KEY;
+import static org.apache.hadoop.hdfs.DFSConfigKeys.DFS_NAMENODE_KEYTAB_FILE_KEY;
+import static org.apache.hadoop.util.ExitUtil.terminate;
 
 @InterfaceAudience.Private
 public class DFSZKFailoverController extends ZKFailoverController {
@@ -209,8 +203,10 @@ public class DFSZKFailoverController extends ZKFailoverController {
     GenericOptionsParser parser = new GenericOptionsParser(
         new HdfsConfiguration(), args);
     try {
-      DFSZKFailoverController zkfc = DFSZKFailoverController.create(
+        //todo       //构建DFSZKFailoverController
+        DFSZKFailoverController zkfc = DFSZKFailoverController.create(
           parser.getConfiguration());
+        //todo       // zkfc.run 启动
       System.exit(zkfc.run(parser.getRemainingArgs()));
     } catch (Throwable t) {
       LOG.error("DFSZKFailOverController exiting due to earlier exception "
