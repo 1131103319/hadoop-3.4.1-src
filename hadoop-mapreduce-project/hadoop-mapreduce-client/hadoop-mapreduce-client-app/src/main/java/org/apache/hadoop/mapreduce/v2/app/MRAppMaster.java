@@ -1631,10 +1631,33 @@ public class MRAppMaster extends CompositeService {
     }
   }
 
+  /**
+   * MapReduce应用主控(MRAppMaster)的主入口点，负责初始化和启动MRAppMaster实例。
+   * <p>
+   * MRAppMaster是YARN架构下MapReduce作业的核心组件，负责管理整个作业的生命周期，包括：
+   * 1. 向ResourceManager申请资源
+   * 2. 管理Map和Reduce任务的执行
+   * 3. 处理任务失败和重试
+   * 4. 作业完成后的清理工作
+   * </p>
+   * 
+   * <p>该方法执行以下主要步骤：
+   * 1. 从环境变量中获取容器ID、节点信息等必要参数
+   * 2. 验证输入参数的有效性
+   * 3. 创建MRAppMaster实例
+   * 4. 初始化作业配置
+   * 5. 启动MRAppMaster服务
+   * </p>
+   * 
+   * @param args 命令行参数（通常为空，因为MRAppMaster由YARN框架启动）
+   */
   public static void main(String[] args) {
     try {
+      // 标记MRAppMaster已启动
       mainStarted = true;
+      // 设置未捕获异常处理器
       Thread.setDefaultUncaughtExceptionHandler(new YarnUncaughtExceptionHandler());
+      // 从环境变量获取必要的运行时信息
       String containerIdStr =
           System.getenv(Environment.CONTAINER_ID.name());
       String nodeHostString = System.getenv(Environment.NM_HOST.name());
@@ -1644,6 +1667,7 @@ public class MRAppMaster extends CompositeService {
       String appSubmitTimeStr =
           System.getenv(ApplicationConstants.APP_SUBMIT_TIME_ENV);
       
+      // 验证所有必要参数是否存在
       validateInputParam(containerIdStr,
           Environment.CONTAINER_ID.name());
       validateInputParam(nodeHostString, Environment.NM_HOST.name());
@@ -1653,37 +1677,46 @@ public class MRAppMaster extends CompositeService {
       validateInputParam(appSubmitTimeStr,
           ApplicationConstants.APP_SUBMIT_TIME_ENV);
 
+      // 解析容器ID和应用尝试ID
       ContainerId containerId = ContainerId.fromString(containerIdStr);
       ApplicationAttemptId applicationAttemptId =
           containerId.getApplicationAttemptId();
+      // 设置调用上下文，用于日志和审计跟踪
       if (applicationAttemptId != null) {
         CallerContext.setCurrent(new CallerContext.Builder(
             "mr_appmaster_" + applicationAttemptId.toString()).build());
       }
+      // 解析应用提交时间
       long appSubmitTime = Long.parseLong(appSubmitTimeStr);
       
-      
+      // 创建MRAppMaster实例
       MRAppMaster appMaster =
           new MRAppMaster(applicationAttemptId, containerId, nodeHostString,
               Integer.parseInt(nodePortString),
               Integer.parseInt(nodeHttpPortString), appSubmitTime);
+      // 添加关闭钩子，确保应用能够优雅退出
       ShutdownHookManager.get().addShutdownHook(
         new MRAppMasterShutdownHook(appMaster), SHUTDOWN_HOOK_PRIORITY);
+      // 初始化作业配置
       JobConf conf = new JobConf(new YarnConfiguration());
       conf.addResource(new Path(MRJobConfig.JOB_CONF_FILE));
       
+      // 初始化Web应用工具
       MRWebAppUtil.initialize(conf);
-      // log the system properties
+      // 记录系统属性
       String systemPropsToLog = MRApps.getSystemPropertiesToLog(conf);
       if (systemPropsToLog != null) {
         LOG.info(systemPropsToLog);
       }
 
+      // 设置作业用户名
       String jobUserName = System
           .getenv(ApplicationConstants.Environment.USER.name());
       conf.set(MRJobConfig.USER_NAME, jobUserName);
+      // 初始化并启动MRAppMaster服务
       initAndStartAppMaster(appMaster, conf, jobUserName);
     } catch (Throwable t) {
+      // 捕获并记录启动过程中的任何异常，然后终止进程
       LOG.error("Error starting MRAppMaster", t);
       ExitUtil.terminate(1, t);
     }

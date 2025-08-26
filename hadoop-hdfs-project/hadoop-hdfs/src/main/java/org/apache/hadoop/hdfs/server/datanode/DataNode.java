@@ -1,13 +1,13 @@
 /**
- * Licensed to the Apache Software Foundation (ASF) under one
- * or more contributor license agreements.  See the NOTICE file
+ * * * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE 文件
  * distributed with this work for additional information
- * regarding copyright ownership.  The ASF licenses this file
+ * regarding copyright ownership.  The ASF licenses this 文件
  * to you under the Apache License, Version 2.0 (the
- * "License"); you may not use this file except in compliance
+ * "License"); you may not use this 文件 except in compliance
  * with the License.  You may obtain a copy of the License at
  * <p>
- * http://www.apache.org/licenses/LICENSE-2.0
+ * HTTP（超文本传输协议）（超文本传输协议）:// www.apache.org/licenses/LICENSE-2.0
  * <p>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -126,37 +126,29 @@ import static org.apache.hadoop.util.ExitUtil.terminate;
 import static org.apache.hadoop.util.Preconditions.checkNotNull;
 import static org.apache.hadoop.util.Time.now;
 
-/**********************************************************
- * DataNode is a class (and program) that stores a set of
- * blocks for a DFS deployment.  A single deployment can
- * have one or many DataNodes.  Each DataNode communicates
- * regularly with a single NameNode.  It also communicates
- * with client code and other DataNodes from time to time.
+/**
+ * ********************************************************
+ * DataNode（数据节点）是一个类（和程序），用于存储DFS部署中的一组数据块。
+ * 单个部署可以有一个或多个DataNode。每个DataNode定期与单个NameNode通信。
+ * 它还不时与客户端代码和其他DataNode通信。
  *
- * DataNodes store a series of named blocks.  The DataNode
- * allows client code to read these blocks, or to write new
- * block data.  The DataNode may also, in response to instructions
- * from its NameNode, delete blocks or copy blocks to/from other
- * DataNodes.
+ * DataNode存储一系列命名的数据块。DataNode允许客户端代码读取这些数据块，
+ * 或写入新的数据块数据。DataNode还可能根据来自NameNode的指令，
+ * 删除数据块或在DataNode之间复制数据块。
  *
- * The DataNode maintains just one critical table:
- *   block{@literal ->} stream of bytes (of BLOCK_SIZE or less)
+ * DataNode只维护一个关键表：
+ *   数据块{@literal ->} 字节流（大小不超过BLOCK_SIZE）
  *
- * This info is stored on a local disk.  The DataNode
- * reports the table's contents to the NameNode upon startup
- * and every so often afterwards.
+ * 此信息存储在本地磁盘上。DataNode在启动时向NameNode报告表的内容，
+ * 之后也会定期报告。
  *
- * DataNodes spend their lives in an endless loop of asking
- * the NameNode for something to do.  A NameNode cannot connect
- * to a DataNode directly; a NameNode simply returns values from
- * functions invoked by a DataNode.
+ * DataNode的生命周期是一个不断向NameNode请求任务的循环。
+ * NameNode不能直接连接到DataNode；NameNode只是从DataNode调用的函数中返回值。
  *
- * DataNodes maintain an open server socket so that client code 
- * or other DataNodes can read/write data.  The host/port for
- * this server is reported to the NameNode, which then sends that
- * information to clients or other DataNodes that might be interested.
- *
- **********************************************************/
+ * DataNode维护一个开放的服务器套接字，以便客户端代码或其他DataNode可以读写数据。
+ * 此服务器的主机/端口会报告给NameNode，然后NameNode会将该信息发送给可能感兴趣的客户端或其他DataNode。
+ * ********************************************************
+ */
 @InterfaceAudience.Private
 public class DataNode extends ReconfigurableBase
         implements InterDatanodeProtocol, ClientDatanodeProtocol,
@@ -345,7 +337,7 @@ public class DataNode extends ReconfigurableBase
     private DataTransferThrottler ecReconstuctWriteThrottler;
 
     /**
-     * Creates a dummy DataNode for testing purpose.
+     * 创建一个用于测试目的的虚拟DataNode。
      */
     @VisibleForTesting
     @InterfaceAudience.LimitedPrivate("HDFS")
@@ -376,8 +368,7 @@ public class DataNode extends ReconfigurableBase
     }
 
     /**
-     * Create the DataNode given a configuration, an array of dataDirs,
-     * and a namenode proxy.
+     * 给定配置、数据目录数组和NameNode代理来创建DataNode。
      */
     DataNode(final Configuration conf,
              final List<StorageLocation> dataDirs,
@@ -937,22 +928,20 @@ public class DataNode extends ReconfigurableBase
         }
     }
 
-    /**
-     * Get a list of the keys of the re-configurable properties in configuration.
-     */
+    /** * Get a list of the keys of the re-configurable properties in 配置. */
     @Override // Reconfigurable
     public Collection<String> getReconfigurableProperties() {
         return RECONFIGURABLE_PROPERTIES;
     }
 
     /**
-     * The ECN bit for the DataNode. The DataNode should return:
+ * * * The ECN bit for the 数据节点. The 数据节点 should 返回:
      * <ul>
      *   <li>ECN.DISABLED when ECN is disabled.</li>
      *   <li>ECN.SUPPORTED when ECN is enabled but the DN still has capacity.</li>
      *   <li>ECN.CONGESTED when ECN is enabled and the DN is congested.</li>
      * </ul>
-     */
+ */
     public PipelineAck.ECN getECN() {
         if (!pipelineSupportECN) {
             return PipelineAck.ECN.DISABLED;
@@ -964,14 +953,14 @@ public class DataNode extends ReconfigurableBase
     }
 
     /**
-     * The SLOW bit for the DataNode of the specific BlockPool.
-     * The DataNode should return:
+ * * * The SLOW bit for the 数据节点 of the specific BlockPool.
+     * The 数据节点 should 返回:
      * <ul>
      *   <li>SLOW.DISABLED when SLOW is disabled
      *   <li>SLOW.NORMAL when SLOW is enabled and DN is not slownode.</li>
      *   <li>SLOW.SLOW when SLOW is enabled and DN is slownode.</li>
      * </ul>
-     */
+ */
     public PipelineAck.SLOW getSLOWByBlockPoolId(String bpId) {
         if (!pipelineSupportSlownode) {
             return PipelineAck.SLOW.DISABLED;
@@ -984,26 +973,26 @@ public class DataNode extends ReconfigurableBase
         return fileIoProvider;
     }
 
-    /**
-     * Contains the StorageLocations for changed data volumes.
-     */
+    /** * Contains the StorageLocations for changed data volumes. */
     @VisibleForTesting
     static class ChangedVolumes {
-        /** The storage locations of the newly added volumes. */
+        /** The 存储 locations of the newly added volumes. */
         List<StorageLocation> newLocations = Lists.newArrayList();
-        /** The storage locations of the volumes that are removed. */
+        /** The 存储 locations of the volumes that are removed. */
         List<StorageLocation> deactivateLocations = Lists.newArrayList();
-        /** The unchanged locations that existed in the old configuration. */
+        /** The unchanged locations that existed in the old 配置. */
         List<StorageLocation> unchangedLocations = Lists.newArrayList();
     }
 
     /**
-     * Parse the new DFS_DATANODE_DATA_DIR value in the configuration to detect
-     * changed volumes.
-     * @param newVolumes a comma separated string that specifies the data volumes.
-     * @return changed volumes.
-     * @throws IOException if none of the directories are specified in the
-     * configuration, or the storage type of a directory is changed.
+     * 解析配置中的DFS_DATANODE_DATA_DIR新值，以检测存储卷的变化情况
+     * 
+     * 此方法用于在DataNode运行时动态刷新存储卷配置时，识别新增、移除或保持不变的存储卷
+     * 通过比较新旧配置中的存储位置信息，确定需要添加的新卷和需要停用的旧卷
+     * 
+     * @param newVolumes 以逗号分隔的字符串，指定新的数据存储卷配置
+     * @return 包含新增、停用和未变更存储卷信息的ChangedVolumes对象
+     * @throws IOException 如果配置中未指定任何目录，或者尝试更改现有目录的存储类型
      */
     @VisibleForTesting
     ChangedVolumes parseChangedVolumes(String newVolumes) throws IOException {
@@ -1015,8 +1004,8 @@ public class DataNode extends ReconfigurableBase
             throw new IOException("No directory is specified.");
         }
 
-        // Use the existing storage locations from the current conf
-        // to detect new storage additions or removals.
+        // Use the existing 存储 locations from the current conf
+        // to detect new 存储 additions or removals.
         Map<String, StorageLocation> existingStorageLocations = new HashMap<>();
         for (StorageLocation loc : getStorageLocations(getConf())) {
             existingStorageLocations.put(loc.getNormalizedUri().toString(), loc);
@@ -1048,8 +1037,8 @@ public class DataNode extends ReconfigurableBase
                 }
             }
 
-            // New conf doesn't have the storage location which available in
-            // the current storage locations. Add to the deactivateLocations list.
+            // New conf doesn't have the 存储 location which available in
+            // the current 存储 locations. Add to the deactivateLocations list.
             if (!found) {
                 LOG.info("Deactivation request received for active volume: {}",
                         dir.getRoot());
@@ -1093,13 +1082,13 @@ public class DataNode extends ReconfigurableBase
     }
 
     /**
-     * Check conflict with same disk tiering feature
-     * and throws exception.
+ * * * Check conflict with same 磁盘 tiering feature
+     * and 抛出 异常.
      *
      * TODO: We can add feature to
-     *   allow refreshing volume with capacity ratio,
-     *   and solve the case of replacing volume on same mount.
-     */
+     *   allow refreshing 卷 with capacity ratio,
+     *   and solve the case of replacing 卷 on same mount.
+ */
     private void validateVolumesWithSameDiskTiering(ChangedVolumes
                                                             changedVolumes) throws IOException {
         if (dnConf.getConf().getBoolean(DFS_DATANODE_ALLOW_SAME_DISK_TIERING,
@@ -1109,7 +1098,7 @@ public class DataNode extends ReconfigurableBase
             for (StorageLocation location : changedVolumes.newLocations) {
                 if (StorageType.allowSameDiskTiering(location.getStorageType())) {
                     File dir = new File(location.getUri());
-                    // Get the first parent dir that exists to check disk mount point.
+                    // Get the first parent dir that exists to check 磁盘 mount point.
                     while (!dir.exists()) {
                         dir = dir.getParentFile();
                         if (dir == null) {
@@ -1133,13 +1122,13 @@ public class DataNode extends ReconfigurableBase
     }
 
     /**
-     * Attempts to reload data volumes with new configuration.
+ * * * Attempts to reload data volumes with new 配置.
      * @param newVolumes a comma separated string that specifies the data volumes.
-     * @throws IOException on error. If an IOException is thrown, some new volumes
+     * @抛出 IOException on error. If an IOException is thrown, some new volumes
      * may have been successfully added and removed.
-     */
+ */
     private void refreshVolumes(String newVolumes) throws IOException {
-        // Add volumes for each Namespace
+        // Add volumes for each 命名空间
         final List<NamespaceInfo> nsInfos = Lists.newArrayList();
         for (BPOfferService bpos : blockPoolManager.getAllNamenodeThreads()) {
             nsInfos.add(bpos.getNamespaceInfo());
@@ -1230,12 +1219,12 @@ public class DataNode extends ReconfigurableBase
     }
 
     /**
-     * Remove volumes from DataNode.
+ * * * Remove volumes from 数据节点.
      * See {@link #removeVolumes(Collection, boolean)} for details.
      *
      * @param locations the StorageLocations of the volumes to be removed.
-     * @throws IOException
-     */
+     * @抛出 IOException
+ */
     private void removeVolumes(final Collection<StorageLocation> locations)
             throws IOException {
         if (locations.isEmpty()) {
@@ -1245,20 +1234,20 @@ public class DataNode extends ReconfigurableBase
     }
 
     /**
-     * Remove volumes from DataNode.
+ * * * Remove volumes from 数据节点.
      *
      * It does three things:
      * <li>
-     *   <ul>Remove volumes and block info from FsDataset.</ul>
+     *   <ul>Remove volumes and 数据块 info from FsDataset.</ul>
      *   <ul>Remove volumes from DataStorage.</ul>
-     *   <ul>Reset configuration DATA_DIR and {@link #dataDirs} to represent
+     *   <ul>Reset 配置 DATA_DIR and {@link #dataDirs} to represent
      *   active volumes.</ul>
      * </li>
-     * @param storageLocations the absolute path of volumes.
+     * @param storageLocations the absolute 路径 of volumes.
      * @param clearFailure if true, clears the failure information related to the
      *                     volumes.
-     * @throws IOException
-     */
+     * @抛出 IOException
+ */
     private synchronized void removeVolumes(
             final Collection<StorageLocation> storageLocations, boolean clearFailure)
             throws IOException {
@@ -1271,7 +1260,7 @@ public class DataNode extends ReconfigurableBase
 
         IOException ioe = null;
         checkStorageState("removeVolumes");
-        // Remove volumes and block infos from FsDataset.
+        // Remove volumes and 数据块 infos from FsDataset.
         data.removeVolumes(storageLocations, clearFailure);
 
         // Remove volumes from DataStorage.
@@ -1281,7 +1270,7 @@ public class DataNode extends ReconfigurableBase
             ioe = e;
         }
 
-        // Set configuration and dataDirs to reflect volume changes.
+        // Set 配置 and dataDirs to reflect 卷 changes.
         for (Iterator<StorageLocation> it = dataDirs.iterator(); it.hasNext(); ) {
             StorageLocation loc = it.next();
             if (storageLocations.contains(loc)) {
@@ -1306,15 +1295,15 @@ public class DataNode extends ReconfigurableBase
     }
 
     /**
-     * Returns the hostname for this datanode. If the hostname is not
+ * * * Returns the hostname for this 数据节点. If the hostname is not
      * explicitly configured in the given config, then it is determined
-     * via the DNS class.
+     * via the DNS 类.
      *
-     * @param config configuration
-     * @return the hostname (NB: may not be a FQDN)
-     * @throws UnknownHostException if the dfs.datanode.dns.interface
+     * @param config 配置
+     * @返回 the hostname (NB: may not be a FQDN)
+     * @抛出 UnknownHostException if the dfs.数据节点.dns.接口
      *    option is used and the hostname can not be determined
-     */
+ */
     private static String getHostName(Configuration config)
             throws UnknownHostException {
         String name = config.get(DFS_DATANODE_HOST_NAME_KEY);
@@ -1326,12 +1315,12 @@ public class DataNode extends ReconfigurableBase
             boolean fallbackToHosts = false;
 
             if (dnsInterface == null) {
-                // Try the legacy configuration keys.
+                // 尝试 the legacy 配置 keys.
                 dnsInterface = config.get(DFS_DATANODE_DNS_INTERFACE_KEY);
                 nameServer = config.get(DFS_DATANODE_DNS_NAMESERVER_KEY);
             } else {
-                // If HADOOP_SECURITY_DNS_* is set then also attempt hosts file
-                // resolution if DNS fails. We will not use hosts file resolution
+                // If HADOOP_SECURITY_DNS_* is set then also attempt hosts 文件
+                // resolution if DNS fails. We will not use hosts 文件 resolution
                 // by default to avoid breaking existing clusters.
                 fallbackToHosts = true;
             }
@@ -1342,13 +1331,13 @@ public class DataNode extends ReconfigurableBase
     }
 
     /**
-     * @see DFSUtil#getHttpPolicy(org.apache.hadoop.conf.Configuration)
-     * for information related to the different configuration options and
-     * Http Policy is decided.
-     */
+ * * * @see DFSUtil#getHttpPolicy(org.apache.hadoop.conf.配置)
+     * for information related to the different 配置 options and
+     * HTTP（超文本传输协议）（超文本传输协议） Policy is decided.
+ */
     private void startInfoServer()
             throws IOException {
-        // SecureDataNodeStarter will bind the privileged port to the channel if
+        // SecureDataNodeStarter will bind the privileged port to the 通道 if
         // the DN is started by JSVC, pass it along.
         ServerSocketChannel httpServerChannel = secureResources != null ?
                 secureResources.getHttpServerChannel() : null;
@@ -1388,7 +1377,7 @@ public class DataNode extends ReconfigurableBase
         InetSocketAddress ipcAddr = NetUtils.createSocketAddr(
                 getConf().getTrimmed(DFS_DATANODE_IPC_ADDRESS_KEY));
 
-        // Add all the RPC protocols that the Datanode implements
+        // 添加数据节点实现的所有远程过程调用（RPC）协议
         RPC.setProtocolEngine(getConf(), ClientDatanodeProtocolPB.class,
                 ProtobufRpcEngine2.class);
         ClientDatanodeProtocolServerSideTranslatorPB clientDatanodeProtocolXlator =
@@ -1433,10 +1422,10 @@ public class DataNode extends ReconfigurableBase
         if (!isPermissionEnabled) {
             return;
         }
-        // Try to get the ugi in the RPC call.
+        // 尝试 to get the ugi in the RPC（远程过程调用） call.
         UserGroupInformation callerUgi = Server.getRemoteUser();
         if (callerUgi == null) {
-            // This is not from RPC.
+            // This is not from RPC（远程过程调用）.
             callerUgi = UserGroupInformation.getCurrentUser();
         }
 
@@ -1459,9 +1448,7 @@ public class DataNode extends ReconfigurableBase
         blockScanner.removeAllVolumeScanners();
     }
 
-    /**
-     * See {@link DirectoryScanner}
-     */
+    /** * See {@link DirectoryScanner} */
     private synchronized void initDirectoryScanner(Configuration conf) {
         if (directoryScanner != null) {
             return;
@@ -1490,10 +1477,10 @@ public class DataNode extends ReconfigurableBase
     }
 
     /**
-     * Initilizes {@link DiskBalancer}.
+ * * * Initilizes {@link DiskBalancer}.
      * @param  data - FSDataSet
      * @param conf - Config
-     */
+ */
     private void initDiskBalancer(FsDatasetSpi data,
                                   Configuration conf) {
         if (this.diskBalancer != null) {
@@ -1505,9 +1492,7 @@ public class DataNode extends ReconfigurableBase
         this.diskBalancer = new DiskBalancer(getDatanodeUuid(), conf, mover);
     }
 
-    /**
-     * Shutdown disk balancer.
-     */
+    /** * Shutdown 磁盘 均衡器. */
     private void shutdownDiskBalancer() {
         if (this.diskBalancer != null) {
             this.diskBalancer.shutdown();
@@ -1603,65 +1588,105 @@ public class DataNode extends ReconfigurableBase
         }
     }
 
-    // calls specific to BP
+    /**
+     * 通知NameNode当前DataNode正在接收一个数据块
+     * 
+     * 当DataNode开始接收客户端或其他DataNode发送的数据块时，调用此方法通知对应的NameNode
+     * 这是块创建过程中的重要步骤，让NameNode能够跟踪块的复制状态
+     * 
+     * @param block 正在接收的块，包含块ID、块池ID和生成戳等信息
+     * @param storageUuid 存储该块的存储卷UUID
+     */
     protected void notifyNamenodeReceivingBlock(
             ExtendedBlock block, String storageUuid) {
+        // 根据块池ID获取对应的BPOfferService，用于与NameNode通信
         BPOfferService bpos = blockPoolManager.get(block.getBlockPoolId());
         if (bpos != null) {
+            // 通知BPOfferService转发块接收信息给NameNode
             bpos.notifyNamenodeReceivingBlock(block, storageUuid);
         } else {
+            // 如果找不到对应的BPOfferService，记录错误日志
             LOG.error("Cannot find BPOfferService for reporting block receiving " +
                     "for bpid={}", block.getBlockPoolId());
         }
     }
 
-    /** Notify the corresponding namenode to delete the block. */
+    /**
+     * 通知NameNode当前DataNode已删除指定的数据块
+     * 
+     * 当DataNode根据NameNode的指令删除一个数据块后，调用此方法通知NameNode块已成功删除
+     * 这确保了NameNode的元数据与实际存储在DataNode上的块信息保持一致
+     * 
+     * @param block 已删除的块，包含块ID、块池ID和生成戳等信息
+     * @param storageUuid 存储该块的存储卷UUID
+     */
     public void notifyNamenodeDeletedBlock(ExtendedBlock block, String storageUuid) {
+        // 根据块池ID获取对应的BPOfferService，用于与NameNode通信
         BPOfferService bpos = blockPoolManager.get(block.getBlockPoolId());
         if (bpos != null) {
+            // 通知BPOfferService转发块删除信息给NameNode
             bpos.notifyNamenodeDeletedBlock(block, storageUuid);
         } else {
+            // 如果找不到对应的BPOfferService，记录错误日志
             LOG.error("Cannot find BPOfferService for reporting block deleted for bpid="
                     + block.getBlockPoolId());
         }
     }
 
     /**
-     * Report a bad block which is hosted on the local DN.
+     * 报告当前DataNode上托管的损坏块给NameNode
+     * 
+     * 当DataNode检测到本地存储的数据块损坏时，调用此方法向NameNode报告
+     * NameNode收到报告后会启动块恢复或重新复制流程，确保数据的完整性
+     * 
+     * @param block 损坏的块，包含块ID、块池ID和生成戳等信息
+     * @throws IOException 如果报告过程中发生IO异常
      */
     public void reportBadBlocks(ExtendedBlock block) throws IOException {
+        // 获取存储该块的卷
         FsVolumeSpi volume = getFSDataset().getVolume(block);
         if (volume == null) {
+            // 如果找不到对应的存储卷，记录警告日志并返回
             LOG.warn("Cannot find FsVolumeSpi to report bad block: {}", block);
             return;
         }
+        // 调用重载方法报告损坏块
         reportBadBlocks(block, volume);
     }
 
     /**
-     * Report a bad block which is hosted on the local DN.
-     *
-     * @param block the bad block which is hosted on the local DN
-     * @param volume the volume that block is stored in and the volume
-     *        must not be null
-     * @throws IOException
+     * 报告当前DataNode上托管的损坏块给NameNode（带存储卷信息）
+     * 
+     * 这是实际执行损坏块报告的核心方法，提供了更详细的存储卷信息
+     * 
+     * @param block 损坏的块，包含块ID、块池ID和生成戳等信息
+     * @param volume 存储该块的卷，不能为空
+     * @throws IOException 如果报告过程中发生IO异常
      */
     public void reportBadBlocks(ExtendedBlock block, FsVolumeSpi volume)
             throws IOException {
+        // 获取与该块相关联的BPOfferService
         BPOfferService bpos = getBPOSForBlock(block);
+        // 通过BPOfferService向NameNode报告损坏块，并提供存储ID和存储类型信息
         bpos.reportBadBlocks(
                 block, volume.getStorageID(), volume.getStorageType());
     }
 
     /**
-     * Report a bad block on another DN (eg if we received a corrupt replica
-     * from a remote host).
-     * @param srcDataNode the DN hosting the bad block
-     * @param block the block itself
+     * 报告远程DataNode上的损坏块给NameNode
+     * 
+     * 当DataNode从其他DataNode接收数据时检测到块损坏，可以通过此方法报告
+     * 这有助于NameNode及时了解整个集群中数据块的健康状态
+     * 
+     * @param srcDataNode 托管损坏块的远程DataNode信息
+     * @param block 损坏的块本身
+     * @throws IOException 如果报告过程中发生IO异常
      */
     public void reportRemoteBadBlock(DatanodeInfo srcDataNode, ExtendedBlock block)
             throws IOException {
+        // 获取与该块相关联的BPOfferService
         BPOfferService bpos = getBPOSForBlock(block);
+        // 通过BPOfferService向NameNode报告远程损坏块
         bpos.reportRemoteBadBlock(srcDataNode, block);
     }
 
@@ -1727,26 +1752,25 @@ public class DataNode extends ReconfigurableBase
     }
 
     /**
-     * This method starts the data node with the specified conf.
+     * 使用指定的配置启动数据节点
+     * 
+     * 如果配置中的DFS_DATANODE_FSDATASET_FACTORY_KEY属性已设置，
+     * 则会创建一个基于模拟存储的数据节点
      *
-     * If conf's DFS_DATANODE_FSDATASET_FACTORY_KEY property is set
-     * then a simulated storage based data node is created.
-     *
-     * @param dataDirectories - only for a non-simulated storage data node
-     * @throws IOException
+     * @param dataDirectories - 仅用于非模拟存储数据节点
+     * @throws IOException 如果启动过程中发生IO异常
      */
     void startDataNode(List<StorageLocation> dataDirectories,
                        SecureResources resources
     ) throws IOException {
 
-        // settings global for all BPs in the Data Node
-        //todo     // Data Node中所有 BPs 设置全局设置
+        // 为DataNode中所有块池(BPs)设置全局配置
         this.secureResources = resources;
         synchronized (this) {
             this.dataDirs = dataDirectories;
         }
         this.dnConf = new DNConf(this);
-        //todo     //检查安全配置
+        // 检查安全配置
         checkSecureConfig(dnConf, getConf(), resources);
 
         if (dnConf.maxLockedMemory > 0) {
@@ -1783,16 +1807,16 @@ public class DataNode extends ReconfigurableBase
                     + ". Value configured is either less than -1 or >= "
                     + "to the number of configured volumes (" + volsConfigured + ").");
         }
-        //todo     //构建存储 DataStorage
+        // 构建数据存储组件
         storage = new DataStorage();
 
         // global DN settings
         registerMXBean();
-        //todo     // 开启 DataXceiverServer
+        // 初始化数据接收器服务器
         initDataXceiver();
-        //todo     // 开启 DatanodeHttpServer
+        // 启动DataNode HTTP服务器
         startInfoServer();
-        //todo     // 开启监控
+        // 启动JVM暂停监控器
         pauseMonitor = new JvmPauseMonitor();
         pauseMonitor.init(getConf());
         pauseMonitor.start();
@@ -1812,11 +1836,11 @@ public class DataNode extends ReconfigurableBase
         metrics.getJvmMetrics().setPauseMonitor(pauseMonitor);
 
         ecWorker = new ErasureCodingWorker(getConf(), this);
-        //todo     // block恢复Worker
+        // 初始化块恢复工作器
         blockRecoveryWorker = new BlockRecoveryWorker(this);
 
         blockPoolManager = new BlockPoolManager(this);
-        //todo     // 刷新namenode
+        // 根据配置刷新NameNode连接
         blockPoolManager.refreshNamenodes(getConf());
 
         // Create the ReadaheadPool from the DataNode context so we can
@@ -1883,9 +1907,9 @@ public class DataNode extends ReconfigurableBase
             final boolean rpcSecured = resources.isRpcPortPrivileged()
                     || resources.isSaslEnabled();
 
-            // Allow secure DataNode to startup if:
-            // 1. Http is secure.
-            // 2. Rpc is secure
+            // Allow secure 数据节点 to startup if:
+            // 1. HTTP（超文本传输协议） is secure.
+            // 2. RPC（远程过程调用） is secure
             if (rpcSecured && httpSecured) {
                 return;
             }
@@ -1900,7 +1924,7 @@ public class DataNode extends ReconfigurableBase
         }
 
         throw new RuntimeException("Cannot start secure DataNode due to incorrect "
-                + "config. See https://cwiki.apache.org/confluence/display/HADOOP/"
+                + "config. See https:// cwiki.apache.org/confluence/display/HADOOP/"
                 + "Secure+DataNode for details.");
     }
 
@@ -1913,11 +1937,11 @@ public class DataNode extends ReconfigurableBase
     }
 
     /**
-     * Verify that the DatanodeUuid has been initialized. If this is a new
-     * datanode then we generate a new Datanode Uuid and persist it to disk.
+ * * * Verify that the DatanodeUuid has been initialized. If this is a new
+     * 数据节点 then we generate a new 数据节点 Uuid and persist it to 磁盘.
      *
-     * @throws IOException
-     */
+     * @抛出 IOException
+ */
     synchronized void checkDatanodeUuid() throws IOException {
         if (storage.getDatanodeUuid() == null) {
             storage.setDatanodeUuid(generateUuid());
@@ -1928,9 +1952,9 @@ public class DataNode extends ReconfigurableBase
     }
 
     /**
-     * Create a DatanodeRegistration for a specific block pool.
-     * @param nsInfo the namespace info from the first part of the NN handshake
-     */
+ * * * Create a DatanodeRegistration for a specific 数据块 pool.
+     * @param nsInfo the 命名空间 info from the first part of the NN handshake
+ */
     DatanodeRegistration createBPRegistration(NamespaceInfo nsInfo) {
         StorageInfo storageInfo = storage.getBPStorage(nsInfo.getBlockPoolID());
         if (storageInfo == null) {
@@ -1950,11 +1974,11 @@ public class DataNode extends ReconfigurableBase
     }
 
     /**
-     * Check that the registration returned from a NameNode is consistent
-     * with the information in the storage. If the storage is fresh/unformatted,
-     * sets the storage ID based on this registration.
-     * Also updates the block pool's state in the secret manager.
-     */
+ * * Check that the registration returned from a 名称节点 is consistent
+     * with the information in the 存储. If the 存储 is fresh/unformatted,
+     * sets the 存储 ID based on this registration.
+     * Also updates the 数据块 pool's 状态 in the secret manager.
+ */
     synchronized void bpRegistrationSucceeded(DatanodeRegistration bpRegistration,
                                               String blockPoolId) throws IOException {
         id = bpRegistration;
@@ -1969,10 +1993,10 @@ public class DataNode extends ReconfigurableBase
     }
 
     /**
-     * After the block pool has contacted the NN, registers that block pool
+ * * * After the 数据块 pool has contacted the NN, registers that 数据块 pool
      * with the secret manager, updating it with the secrets provided by the NN.
-     * @throws IOException on error
-     */
+     * @抛出 IOException on error
+ */
     private synchronized void registerBlockPoolWithSecretManager(
             DatanodeRegistration bpRegistration, String blockPoolId) throws IOException {
         ExportedBlockKeys keys = bpRegistration.getExportedKeys();
@@ -2006,15 +2030,13 @@ public class DataNode extends ReconfigurableBase
         }
     }
 
-    /**
-     * Remove the given block pool from the block scanner, dataset, and storage.
-     */
+    /** * Remove the given 数据块 pool from the 数据块 scanner, dataset, and 存储. */
     void shutdownBlockPool(BPOfferService bpos) {
         blockPoolManager.remove(bpos);
         if (bpos.hasBlockPoolId()) {
             // Possible that this is shutting down before successfully
             // registering anywhere. If that's the case, we wouldn't have
-            // a block pool id
+            // a 数据块 pool id
             String bpId = bpos.getBlockPoolId();
 
             if (blockScanner.hasAnyRegisteredScanner()) {
@@ -2033,16 +2055,16 @@ public class DataNode extends ReconfigurableBase
     }
 
     /**
-     * One of the Block Pools has successfully connected to its NN.
-     * This initializes the local storage for that block pool,
+ * * * One of the 数据块 Pools has successfully connected to its NN.
+     * This initializes the local 存储 for that 数据块 pool,
      * checks consistency of the NN's cluster ID, etc.
      *
-     * If this is the first block pool to register, this also initializes
-     * the datanode-scoped storage.
+     * If this is the first 数据块 pool to register, this also initializes
+     * the 数据节点-scoped 存储.
      *
-     * @param bpos Block pool offer service
-     * @throws IOException if the NN is inconsistent with the local storage.
-     */
+     * @param bpos 数据块 pool offer service
+     * @抛出 IOException if the NN is inconsistent with the local 存储.
+ */
     void initBlockPool(BPOfferService bpos) throws IOException {
         NamespaceInfo nsInfo = bpos.getNamespaceInfo();
         if (nsInfo == null) {
@@ -2106,8 +2128,7 @@ public class DataNode extends ReconfigurableBase
     }
 
     /**
-     * Initializes the {@link #data}. The initialization is done only once, when
-     * handshake with the the first namenode is completed.
+     * 初始化数据存储组件({@link #data})。初始化过程只执行一次，即在与第一个名称节点完成握手时进行。
      */
     private void initStorage(final NamespaceInfo nsInfo) throws IOException {
         final FsDatasetSpi.Factory<? extends FsDatasetSpi<?>> factory
@@ -2141,7 +2162,7 @@ public class DataNode extends ReconfigurableBase
     }
 
     /**
-     * Determine the http server's effective addr
+     * 确定超文本传输协议（HTTP）服务器的有效地址
      */
     public static InetSocketAddress getInfoAddr(Configuration conf) {
         return NetUtils.createSocketAddr(conf.getTrimmed(DFS_DATANODE_HTTP_ADDRESS_KEY,
@@ -2168,34 +2189,38 @@ public class DataNode extends ReconfigurableBase
     }
 
     /**
-     * @return name useful for logging or display
+     * 返回用于日志记录或显示的名称
+     * @return 用于日志记录或显示的名称
      */
     public String getDisplayName() {
         return hostName + ":" + getXferPort();
     }
 
     /**
-     * NB: The datanode can perform data transfer on the streaming
-     * address however clients are given the IPC IP address for data
-     * transfer, and that may be a different address.
-     *
-     * @return socket address for data transfer
+     * 获取数据传输的套接字地址
+     * 
+     * 注意：数据节点可以在流式传输地址上执行数据传输，但客户端会被分配IPC IP地址进行数据传输，
+     * 这两者可能是不同的地址。
+     * 
+     * @return 数据传输的套接字地址
      */
     public InetSocketAddress getXferAddress() {
         return streamingAddr;
     }
 
     /**
-     * @return the datanode's IPC port
+     * 获取数据节点的IPC端口
+     * @return 数据节点的IPC端口号
      */
     public int getIpcPort() {
         return ipcServer.getListenerAddress().getPort();
     }
 
     /**
-     * get BP registration by blockPool id
-     * @return BP registration object
-     * @throws IOException on error
+     * 通过块池ID获取BP注册信息
+     * @param bpid 块池ID
+     * @return 块池注册对象
+     * @throws IOException 当获取注册信息失败时抛出异常
      */
     @VisibleForTesting
     public DatanodeRegistration getDNRegistrationForBP(String bpid)
@@ -2382,10 +2407,10 @@ public class DataNode extends ReconfigurableBase
     }
 
     /**
-     * Shut down this instance of the datanode.
-     * Returns only after shutdown is complete.
-     * This method can only be called by the offerService thread.
-     * Otherwise, deadlock might occur.
+     * 关闭当前数据节点实例
+     * 仅在关闭完成后才返回
+     * 此方法只能由offerService线程调用，
+     * 否则可能会发生死锁
      */
     public void shutdown() {
         stopMetricsLogger();
@@ -2556,7 +2581,7 @@ public class DataNode extends ReconfigurableBase
         synchronized (this) {
             // it is already false, but setting it again to avoid a findbug warning.
             this.shouldRun = false;
-            // Notify the main thread.
+            // Notify the main 线程.
             notifyAll();
         }
         tracer.close();
@@ -2564,9 +2589,9 @@ public class DataNode extends ReconfigurableBase
     }
 
     /**
-     * Check if there is a disk failure asynchronously
+ * * * Check if there is a 磁盘 failure asynchronously
      * and if so, handle the error.
-     */
+ */
     public void checkDiskErrorAsync(FsVolumeSpi volume) {
         volumeChecker.checkVolume(
                 volume, (healthyVolumes, failedVolumes) -> {
@@ -2592,7 +2617,7 @@ public class DataNode extends ReconfigurableBase
                 : DatanodeProtocol.FATAL_DISK_ERROR;
         metrics.incrVolumeFailures(failedNumber);
 
-        //inform NameNodes
+        // inform NameNodes
         for (BPOfferService bpos : blockPoolManager.getAllNamenodeThreads()) {
             bpos.trySendErrorReport(dpError, failedVolumes);
         }
@@ -2642,42 +2667,40 @@ public class DataNode extends ReconfigurableBase
         }
     }
 
-    @Override //DataNodeMXBean
+    @Override // DataNodeMXBean
     public int getXmitsInProgress() {
         return xmitsInProgress.get();
     }
 
     /**
-     * Increments the xmitsInProgress count. xmitsInProgress count represents the
-     * number of data replication/reconstruction tasks running currently.
-     */
+ * * * Increments the xmitsInProgress count. xmitsInProgress count represents the
+     * number of data 副本/reconstruction tasks running currently.
+ */
     public void incrementXmitsInProgress() {
         xmitsInProgress.getAndIncrement();
     }
 
     /**
-     * Increments the xmitInProgress count by given value.
+ * * * Increments the xmitInProgress count by given 值.
      *
      * @param delta the amount of xmitsInProgress to increase.
      * @see #incrementXmitsInProgress()
-     */
+ */
     public void incrementXmitsInProcess(int delta) {
         Preconditions.checkArgument(delta >= 0);
         xmitsInProgress.getAndAdd(delta);
     }
 
-    /**
-     * Decrements the xmitsInProgress count
-     */
+    /** * Decrements the xmitsInProgress count */
     public void decrementXmitsInProgress() {
         xmitsInProgress.getAndDecrement();
     }
 
     /**
-     * Decrements the xmitsInProgress count by given value.
+ * * * Decrements the xmitsInProgress count by given 值.
      *
      * @see #decrementXmitsInProgress()
-     */
+ */
     public void decrementXmitsInProgress(int delta) {
         Preconditions.checkArgument(delta >= 0);
         xmitsInProgress.getAndAdd(0 - delta);
@@ -2695,17 +2718,32 @@ public class DataNode extends ReconfigurableBase
         LOG.warn(msg);
     }
 
+    /**
+ * * 将单个数据块传输到指定的目标DataNode
+     * 
+     * 此方法是DataNode间数据复制的核心实现，负责检查块的状态并启动异步传输任务
+     * 它首先验证块的完整性，然后创建一个DataTransfer任务提交到线程池执行
+     * 
+     * @param 数据块 要传输的块，包含块ID、块池ID和块大小等信息
+     * @param xferTargets 目标DataNode列表，块将被传输到这些节点
+     * @param xferTargetStorageTypes 目标节点的存储类型数组
+     * @param xferTargetStorageIDs 目标节点的存储ID数组
+     * @抛出 IOException 如果在传输过程中发生IO异常
+ */
     @VisibleForTesting
     void transferBlock(ExtendedBlock block, DatanodeInfo[] xferTargets,
                        StorageType[] xferTargetStorageTypes, String[] xferTargetStorageIDs)
             throws IOException {
+        // 获取块所属的BPOfferService
         BPOfferService bpos = getBPOSForBlock(block);
+        // 获取块池对应的DataNode注册信息
         DatanodeRegistration bpReg = getDNRegistrationForBP(block.getBlockPoolId());
 
-        boolean replicaNotExist = false;
-        boolean replicaStateNotFinalized = false;
-        boolean blockFileNotExist = false;
-        boolean lengthTooShort = false;
+        // 块状态标志
+        boolean replicaNotExist = false;              // 副本不存在
+        boolean replicaStateNotFinalized = false;     // 副本状态不是FINALIZED
+        boolean blockFileNotExist = false;            // 块文件不存在
+        boolean lengthTooShort = false;               // 块长度太短（可能损坏）
 
         try {
             data.checkBlock(block, block.getNumBytes(), ReplicaState.FINALIZED);
@@ -2718,9 +2756,9 @@ public class DataNode extends ReconfigurableBase
         } catch (EOFException e) {
             lengthTooShort = true;
         } catch (IOException e) {
-            // The IOException indicates not being able to access block file,
+            // The IOException indicates not being able to access 数据块 文件,
             // treat it the same here as blockFileNotExist, to trigger
-            // reporting it as a bad block
+            // reporting it as a bad 数据块
             blockFileNotExist = true;
         }
 
@@ -2731,14 +2769,14 @@ public class DataNode extends ReconfigurableBase
             return;
         }
         if (blockFileNotExist) {
-            // Report back to NN bad block caused by non-existent block file.
+            // Report back to NN bad 数据块 caused by non-existent 数据块 文件.
             reportBadBlock(bpos, block, "Can't replicate block " + block
                     + " because the block file doesn't exist, or is not accessible");
             return;
         }
         if (lengthTooShort) {
-            // Check if NN recorded length matches on-disk length
-            // Shorter on-disk len indicates corruption so report NN the corrupt block
+            // Check if NN recorded length matches on-磁盘 length
+            // Shorter on-磁盘 len indicates corruption so report NN the corrupt 数据块
             reportBadBlock(bpos, block, "Can't replicate block " + block
                     + " because on-disk length " + data.getLength(block)
                     + " is shorter than NameNode recorded length " + block.getNumBytes());
@@ -2760,23 +2798,38 @@ public class DataNode extends ReconfigurableBase
         }
     }
 
+    /**
+ * * * 批量传输多个数据块到对应的目标DataNode
+     * 
+     * 此方法是对transferBlock的批量封装，用于处理来自NameNode的批量块复制请求
+     * 它会遍历所有块，并为每个块调用transferBlock方法
+     * 
+     * @param poolId 块池ID，所有块都属于这个块池
+     * @param blocks 要传输的块数组
+     * @param xferTargets 每个块对应的目标DataNode二维数组
+     * @param xferTargetStorageTypes 每个块对应的目标存储类型二维数组
+     * @param xferTargetStorageIDs 每个块对应的目标存储ID二维数组
+ */
     void transferBlocks(String poolId, Block blocks[],
                         DatanodeInfo[][] xferTargets, StorageType[][] xferTargetStorageTypes,
                         String[][] xferTargetStorageIDs) {
+        // 遍历所有要传输的块
         for (int i = 0; i < blocks.length; i++) {
             try {
+                // 将Block转换为ExtendedBlock，然后调用transferBlock方法传输单个块
                 transferBlock(new ExtendedBlock(poolId, blocks[i]), xferTargets[i],
                         xferTargetStorageTypes[i], xferTargetStorageIDs[i]);
             } catch (IOException ie) {
+                // 捕获并记录每个块传输过程中的异常，但不中断其他块的传输
                 LOG.warn("Failed to transfer block {}", blocks[i], ie);
             }
         }
     }
 
   /* ********************************************************************
-  Protocol when a client reads data from Datanode (Cur Ver: 9):
+  协议 when a 客户端 reads data from 数据节点 (Cur Ver: 9):
 
-  Client's Request :
+  客户端's Request :
   =================
 
      Processed in DataXceiver:
@@ -2786,14 +2839,14 @@ public class DataNode extends ReconfigurableBase
 
      Processed in readBlock() :
      +-------------------------------------------------------------------------+
-     | 8 byte Block ID | 8 byte genstamp | 8 byte start offset | 8 byte length |
+     | 8 byte 数据块 ID | 8 byte genstamp | 8 byte start offset | 8 byte length |
      +-------------------------------------------------------------------------+
      |   vInt length   |  <DFSClient id> |
      +-----------------------------------+
 
-     Client sends optional response only at the end of receiving data.
+     客户端 sends optional response only at the end of receiving data.
 
-  DataNode Response :
+  数据节点 Response :
   ===================
 
     In readBlock() :
@@ -2819,9 +2872,9 @@ public class DataNode extends ReconfigurableBase
 
     A "PACKET" is defined further below.
 
-    The client reads data until it receives a packet with
+    The 客户端 reads data until it receives a packet with
     "LastPacketInBlock" set to true or with a zero length. It then replies
-    to DataNode with one of the status codes:
+    to 数据节点 with one of the status codes:
     - CHECKSUM_OK:    All the chunk checksums have been verified
     - SUCCESS:        Data received; checksums not verified
     - ERROR_CHECKSUM: (Currently not used) Detected invalid checksums
@@ -2830,10 +2883,10 @@ public class DataNode extends ReconfigurableBase
       | 2 byte Status |
       +---------------+
 
-    The DataNode expects all well behaved clients to send the 2 byte
-    status code. And if the the client doesn't, the DN will close the
+    The 数据节点 expects all well behaved clients to send the 2 byte
+    status code. And if the the 客户端 doesn't, the DN will close the
     connection. So the status code is optional in the sense that it
-    does not affect the correctness of the data. (And the client can
+    does not affect the correctness of the data. (And the 客户端 can
     always reconnect.)
 
     PACKET : Contains a packet header, checksum and data. Amount of data
@@ -2842,7 +2895,7 @@ public class DataNode extends ReconfigurableBase
       +-----------------------------------------------------+
       | 4 byte packet length (excluding packet header)      |
       +-----------------------------------------------------+
-      | 8 byte offset in the block | 8 byte sequence number |
+      | 8 byte offset in the 数据块 | 8 byte sequence number |
       +-----------------------------------------------------+
       | 1 byte isLastPacketInBlock                          |
       +-----------------------------------------------------+
@@ -2864,9 +2917,9 @@ public class DataNode extends ReconfigurableBase
    ************************************************************************ */
 
     /**
-     * Used for transferring a block of data.  This class
-     * sends a piece of data to another DataNode.
-     */
+ * * * Used for transferring a 数据块 of data.  This 类
+     * sends a piece of data to another 数据节点.
+ */
     private class DataTransfer implements Runnable {
         final DatanodeInfo[] targets;
         final StorageType[] targetStorageTypes;
@@ -2877,13 +2930,13 @@ public class DataNode extends ReconfigurableBase
         final String clientname;
         final CachingStrategy cachingStrategy;
 
-        /** Throttle to block replication when data transfers or writes. */
+        /** Throttle to 数据块 副本 when data transfers or writes. */
         private DataTransferThrottler throttler;
 
         /**
-         * Connect to the first item in the target list.  Pass along the
-         * entire target list, the block, and the data.
-         */
+ * * * Connect to the first item in the target list.  Pass along the
+         * entire target list, the 数据块, and the data.
+ */
         DataTransfer(DatanodeInfo targets[], StorageType[] targetStorageTypes,
                      String[] targetStorageIds, ExtendedBlock b,
                      BlockConstructionStage stage, final String clientname) {
@@ -2911,9 +2964,7 @@ public class DataNode extends ReconfigurableBase
             }
         }
 
-        /**
-         * Do the deed, write the bytes
-         */
+        /** * Do the deed, write the bytes */
         @Override
         public void run() {
             incrementXmitsInProgress();
@@ -3013,9 +3064,10 @@ public class DataNode extends ReconfigurableBase
         }
     }
 
-    /***
-     * Use BlockTokenSecretManager to generate block token for current user.
-     */
+    /**
+ * * *
+     * Use BlockTokenSecretManager to generate 数据块 token for current user.
+ */
     public Token<BlockTokenIdentifier> getBlockAccessToken(ExtendedBlock b,
                                                            EnumSet<AccessMode> mode,
                                                            StorageType[] storageTypes, String[] storageIds) throws IOException {
@@ -3029,12 +3081,12 @@ public class DataNode extends ReconfigurableBase
     }
 
     /**
-     * Returns a new DataEncryptionKeyFactory that generates a key from the
-     * BlockPoolTokenSecretManager, using the block pool ID of the given block.
+ * * * Returns a new DataEncryptionKeyFactory that generates a key from the
+     * BlockPoolTokenSecretManager, using the 数据块 pool ID of the given 数据块.
      *
-     * @param block for which the factory needs to create a key
-     * @return DataEncryptionKeyFactory for block's block pool ID
-     */
+     * @param 数据块 for which the 工厂 needs to create a key
+     * @返回 DataEncryptionKeyFactory for 数据块's 数据块 pool ID
+ */
     public DataEncryptionKeyFactory getDataEncryptionKeyFactoryForBlock(
             final ExtendedBlock block) {
         return new DataEncryptionKeyFactory() {
@@ -3048,12 +3100,12 @@ public class DataNode extends ReconfigurableBase
     }
 
     /**
-     * After a block becomes finalized, a datanode increases metric counter,
-     * notifies namenode, and adds it to the block scanner
-     * @param block block to close
-     * @param delHint hint on which excess block to delete
-     * @param storageUuid UUID of the storage where block is stored
-     */
+ * * After a 数据块 becomes finalized, a 数据节点 increases 指标 counter,
+     * notifies 名称节点, and adds it to the 数据块 scanner
+     * @param 数据块 数据块 to close
+     * @param delHint hint on which excess 数据块 to delete
+     * @param storageUuid UUID of the 存储 where 数据块 is stored
+ */
     void closeBlock(ExtendedBlock block, String delHint, String storageUuid,
                     boolean isTransientStorage) {
         metrics.incrBlocksWritten();
@@ -3061,76 +3113,102 @@ public class DataNode extends ReconfigurableBase
                 isTransientStorage);
     }
 
-    /** Start a single datanode daemon and wait for it to finish.
-     *  If this thread is specifically interrupted, it will stop waiting.
-     *  todo    * 开启各种服务
+    /**
+     * 启动DataNode守护进程并等待其完成
+     * 这是DataNode启动的核心方法，负责启动各种网络服务和组件
+     * 如果该线程被中断，它将停止等待
      */
     public void runDatanodeDaemon() throws IOException {
-
-        // Verify that blockPoolManager has been started.
+        // 验证blockPoolManager是否已启动，确保DataNode实例化成功
         if (!isDatanodeUp()) {
             throw new IOException("Failed to instantiate DataNode.");
         }
 
-        // start dataXceiveServer
+        // 启动数据接收服务器，用于处理数据块传输请求
         dataXceiverServer.start();
+        
+        // 如果配置了本地数据接收服务器，也启动它
         if (localDataXceiverServer != null) {
             localDataXceiverServer.start();
         }
+        
+        // 配置IPC服务器的跟踪器并启动IPC服务器，用于RPC通信
         ipcServer.setTracer(tracer);
         ipcServer.start();
+        
+        // 记录DataNode的启动时间
         startTime = now();
+        
+        // 启动配置的插件，扩展DataNode功能
         startPlugins(getConf());
     }
 
     /**
-     * A data node is considered to be up if one of the bp services is up
+     * 判断DataNode是否处于运行状态
+     * 该方法用于验证DataNode是否成功启动并正常运行
+     * 
+     * 判断标准：只要有一个块池服务(BPOfferService)处于活跃状态，DataNode就被视为启动成功
+     * 这是因为DataNode可能连接到多个NameNode(高可用或联邦模式)，只要与其中一个NameNode的连接正常
+     * 
+     * @return 如果DataNode处于运行状态则返回true，否则返回false
      */
     public boolean isDatanodeUp() {
+        // 遍历所有与NameNode通信的块池服务线程
         for (BPOfferService bp : blockPoolManager.getAllNamenodeThreads()) {
+            // 检查当前块池服务是否活跃（与对应的NameNode连接正常）
             if (bp.isAlive()) {
                 return true;
             }
         }
+        // 所有块池服务都不活跃，DataNode启动失败
         return false;
     }
 
-    /** Instantiate a single datanode object. This must be run by invoking
-     *  {@link DataNode#runDatanodeDaemon()} subsequently.
+    /**
+     * 实例化单个DataNode对象（无安全资源版本）
+     * 注意：调用此方法后必须调用{@link DataNode#runDatanodeDaemon()}来启动守护进程
+     */
      */
     public static DataNode instantiateDataNode(String args[],
                                                Configuration conf) throws IOException {
         return instantiateDataNode(args, conf, null);
     }
 
-    /** Instantiate a single datanode object, along with its secure resources.
-     * This must be run by invoking{@link DataNode#runDatanodeDaemon()}
-     * subsequently.
-     * todo * 实例化单个datanode对象及其安全资源
+    /**
+     * 实例化单个DataNode对象及其安全资源
+     * 这是DataNode实例化的核心方法，负责解析参数、设置配置、获取存储位置、登录安全认证
+     * 注意：调用此方法后必须调用{@link DataNode#runDatanodeDaemon()}来启动守护进程
+     */
      */
     public static DataNode instantiateDataNode(String args[], Configuration conf,
                                                SecureResources resources) throws IOException {
+        // 如果没有提供配置，创建新的HDFS配置
         if (conf == null)
             conf = new HdfsConfiguration();
 
+        // 解析Hadoop通用选项
         if (args != null) {
-            // parse generic hadoop options
             GenericOptionsParser hParser = new GenericOptionsParser(conf, args);
             args = hParser.getRemainingArgs();
         }
 
+        // 解析DataNode特定的命令行参数
         if (!parseArguments(args, conf)) {
             printUsage(System.err);
             return null;
         }
-        //todo     //构建存储位置对象
+        
+        // 构建存储位置对象，确定数据块存储的目录
         Collection<StorageLocation> dataLocations = getStorageLocations(conf);
-        //todo     // 构建用户组信息
+        
+        // 配置用户组信息，用于权限管理
         UserGroupInformation.setConfiguration(conf);
-        //todo     // 构建授权体系 比如 kerbos
+        
+        // 执行安全登录（如Kerberos认证），建立安全上下文
         SecurityUtil.login(conf, DFS_DATANODE_KEYTAB_FILE_KEY,
                 DFS_DATANODE_KERBEROS_PRINCIPAL_KEY, getHostName(conf));
-        //todo     // 构建实例
+        
+        // 调用makeInstance创建并初始化DataNode实例
         return makeInstance(dataLocations, conf, resources);
     }
 
@@ -3154,14 +3232,14 @@ public class DataNode extends ReconfigurableBase
     }
 
     /**
-     * Sometimes we mount different disks for different storage types
-     * as the storage location. It's important to check the volume is
-     * mounted rightly before initializing storage locations.
-     * @param conf - Configuration
-     * @param location - Storage location
-     * @return false if the filesystem of location is configured and mismatch
+ * * Sometimes we mount different disks for different 存储 types
+     * as the 存储 location. It's important to check the 卷 is
+     * mounted rightly before initializing 存储 locations.
+     * @param conf - 配置
+     * @param location - 存储 location
+     * @返回 false if the filesystem of location is configured and mismatch
      * with effective filesystem.
-     */
+ */
     private static boolean checkFileSystemWithConfigured(
             Configuration conf, StorageLocation location) {
         String configFs = StorageType.getConf(
@@ -3192,7 +3270,7 @@ public class DataNode extends ReconfigurableBase
             } catch (IOException | SecurityException ioe) {
                 LOG.error("Failed to initialize storage directory {}." +
                         "Exception details: {}", locationString, ioe.toString());
-                // Ignore the exception.
+                // Ignore the 异常.
                 continue;
             }
             if (checkFileSystemWithConfigured(conf, location)) {
@@ -3203,29 +3281,33 @@ public class DataNode extends ReconfigurableBase
         return locations;
     }
 
-    /** Instantiate &amp; Start a single datanode daemon and wait for it to
+    /**
+ * * Instantiate &amp; Start a single 数据节点 守护进程 and wait for it to
      * finish.
-     *  If this thread is specifically interrupted, it will stop waiting.
-     */
+     *  If this 线程 is specifically interrupted, it will stop waiting.
+ */
     @VisibleForTesting
+    /**
+     * 创建DataNode实例的简化方法（无安全资源版本）
+     * 这是一个重载方法，主要用于简化调用，不涉及安全资源
+     */
     public static DataNode createDataNode(String args[],
                                           Configuration conf) throws IOException {
         return createDataNode(args, conf, null);
     }
 
-    /** Instantiate &amp; Start a single datanode daemon and wait for it to
-     * finish.
-     *  If this thread is specifically interrupted, it will stop waiting.
+    /**
+     * 实例化并启动单个DataNode守护进程
+     * 这个方法负责创建DataNode实例并启动其守护进程，是DataNode启动的核心方法
      */
     @VisibleForTesting
     @InterfaceAudience.Private
-    //todo // 实例化并启动单个datanode守护进程并等待它完成。
-    //  // 如果这个线程被特别中断，它将停止等待。
     public static DataNode createDataNode(String args[], Configuration conf,
                                           SecureResources resources) throws IOException {
-        //todo     //初始化构建DataNode
+        // 初始化并构建DataNode实例
         DataNode dn = instantiateDataNode(args, conf, resources);
         if (dn != null) {
+            // 启动DataNode守护进程，包括各种网络服务
             dn.runDatanodeDaemon();
         }
         return dn;
@@ -3250,30 +3332,38 @@ public class DataNode extends ReconfigurableBase
     }
 
     /**
-     * Make an instance of DataNode after ensuring that at least one of the
-     * given data directories (and their parent directories, if necessary)
-     * can be created.
-     * @param dataDirs List of directories, where the new DataNode instance should
-     * keep its files.
-     * @param conf Configuration instance to use.
-     * @param resources Secure resources needed to run under Kerberos
-     * @return DataNode instance for given list of data dirs and conf, or null if
-     * no directory from this directory list can be created.
-     * @throws IOException
+     * 创建DataNode实例的核心方法
+     * 该方法在确保至少有一个给定的数据目录（及其父目录，如果需要）可以创建后实例化DataNode
+     * 这是DataNode实例化的最后一步，在验证存储目录可用后创建实际的DataNode对象
+     * 
+     * @param dataDirs 数据目录集合，新的DataNode实例将在这些目录中存储文件
+     * @param conf 要使用的配置实例
+     * @param resources 在Kerberos下运行所需的安全资源
+     * @return 给定数据目录和配置的DataNode实例，如果无法创建任何目录则返回null
+     * @throws IOException 如果实例化DataNode失败
      */
     static DataNode makeInstance(Collection<StorageLocation> dataDirs,
                                  Configuration conf, SecureResources resources) throws IOException {
         List<StorageLocation> locations;
-        StorageLocationChecker storageLocationChecker =
+        
+        // 创建存储位置检查器，用于验证数据目录是否可用
+        StorageLocationChecker storageLocationChecker = 
                 new StorageLocationChecker(conf, new Timer());
         try {
+            // 检查并验证所有数据目录，返回可使用的存储位置列表
             locations = storageLocationChecker.check(conf, dataDirs);
         } catch (InterruptedException ie) {
+            // 捕获中断异常并转换为IOException
             throw new IOException("Failed to instantiate DataNode", ie);
         }
+        
+        // 初始化DataNode的指标系统，用于收集和报告性能指标
         DefaultMetricsSystem.initialize("DataNode");
 
+        // 断言确保至少有一个可用的数据目录
         assert locations.size() > 0 : "number of data directories should be > 0";
+        
+        // 创建并返回新的DataNode实例
         return new DataNode(conf, locations, storageLocationChecker, resources);
     }
 
@@ -3289,48 +3379,82 @@ public class DataNode extends ReconfigurableBase
     }
 
     /**
-     * Parse and verify command line arguments and set configuration parameters.
-     *
-     * @return false if passed argements are incorrect
+     * 解析和验证DataNode的命令行参数并设置配置参数
+     * 该方法负责处理启动DataNode时传入的命令行参数，确定启动模式并设置相应的配置
+     * 
+     * @param args 命令行参数数组
+     * @param conf 要设置的配置对象
+     * @return 如果参数正确则返回true，如果参数不正确则返回false
      */
     @VisibleForTesting
     static boolean parseArguments(String args[], Configuration conf) {
+        // 默认设置为常规启动模式
         StartupOption startOpt = StartupOption.REGULAR;
         int i = 0;
 
+        // 如果存在命令行参数
         if (args != null && args.length != 0) {
+            // 获取第一个参数
             String cmd = args[i++];
+            
+            // 检查是否为机架参数（已不再支持）
             if ("-r".equalsIgnoreCase(cmd) || "--rack".equalsIgnoreCase(cmd)) {
                 LOG.error("-r, --rack arguments are not supported anymore. RackID " +
                         "resolution is handled by the NameNode.");
                 return false;
-            } else if (StartupOption.ROLLBACK.getName().equalsIgnoreCase(cmd)) {
+            } 
+            // 检查是否为回滚模式
+            else if (StartupOption.ROLLBACK.getName().equalsIgnoreCase(cmd)) {
                 startOpt = StartupOption.ROLLBACK;
-            } else if (StartupOption.REGULAR.getName().equalsIgnoreCase(cmd)) {
+            } 
+            // 检查是否为常规模式
+            else if (StartupOption.REGULAR.getName().equalsIgnoreCase(cmd)) {
                 startOpt = StartupOption.REGULAR;
-            } else {
+            } 
+            // 不支持的参数
+            else {
                 return false;
             }
         }
 
+        // 将启动选项设置到配置中
         setStartupOption(conf, startOpt);
-        return (args == null || i == args.length);    // Fail if more than one cmd specified!
+        
+        // 确保没有指定多个命令（如果只有一个命令，则i应该等于args.length）
+        return (args == null || i == args.length);    // 如果指定了多个命令则失败
     }
 
+    /**
+     * 设置DataNode的启动选项到配置对象中
+     * 该方法将启动模式枚举转换为字符串并存储在配置中
+     * 
+     * @param conf 配置对象
+     * @param opt 启动选项枚举值
+     */
     private static void setStartupOption(Configuration conf, StartupOption opt) {
+        // 将启动选项存储在配置中，使用预定义的配置键
         conf.set(DFS_DATANODE_STARTUP_KEY, opt.toString());
     }
 
+    /**
+     * 从配置对象中获取DataNode的启动选项
+     * 该方法从配置中读取启动模式字符串并转换为枚举值
+     * 
+     * @param conf 配置对象
+     * @return 启动选项枚举值，如果配置中不存在则返回常规模式
+     */
     static StartupOption getStartupOption(Configuration conf) {
+        // 从配置中获取启动选项，默认使用常规模式
         String value = conf.get(DFS_DATANODE_STARTUP_KEY,
                 StartupOption.REGULAR.toString());
+        // 将字符串值转换为枚举值
         return StartupOption.getEnum(value);
     }
 
     /**
-     * This methods  arranges for the data node to send
-     * the block report at the next heartbeat.
-     */
+ * * * This methods  arranges for the data node to send
+     * the 数据块 report at the next heartbeat.
+ */
     public void scheduleAllBlockReport(long delay) {
         for (BPOfferService bpos : blockPoolManager.getAllNamenodeThreads()) {
             bpos.scheduleBlockReport(delay);
@@ -3338,18 +3462,18 @@ public class DataNode extends ReconfigurableBase
     }
 
     /**
-     * Examples are adding and deleting blocks directly.
-     * The most common usage will be when the data node's storage is simulated.
+ * * * Examples are adding and deleting blocks directly.
+     * The most common usage will be when the data node's 存储 is simulated.
      *
-     * @return the fsdataset that stores the blocks
-     */
+     * @返回 the fsdataset that stores the blocks
+ */
     @VisibleForTesting
     public FsDatasetSpi<?> getFSDataset() {
         return data;
     }
 
     @VisibleForTesting
-    /** @return the block scanner. */
+    /** @返回 the 数据块 scanner. */
     public BlockScanner getBlockScanner() {
         return blockScanner;
     }
@@ -3364,14 +3488,19 @@ public class DataNode extends ReconfigurableBase
         return blockPoolTokenSecretManager;
     }
 
+    /**
+     * 安全模式下启动DataNode的主方法
+     * 在安全集群中，这个方法会在获取特权资源后被调用
+     */
     public static void secureMain(String args[], SecureResources resources) {
         int errorCode = 0;
         try {
+            // 打印DataNode启动和关闭的日志消息
             StringUtils.startupShutdownMessage(DataNode.class, args, LOG);
-            //todo       // 构建DataNode
+            // 构建DataNode实例
             DataNode datanode = createDataNode(args, null, resources);
             if (datanode != null) {
-                //todo         //阻塞datanode
+                // 阻塞当前线程，等待DataNode守护进程结束
                 datanode.join();
             } else {
                 errorCode = 1;
@@ -3380,44 +3509,69 @@ public class DataNode extends ReconfigurableBase
             LOG.error("Exception in secureMain", e);
             terminate(1, e);
         } finally {
-            // We need to terminate the process here because either shutdown was called
-            // or some disk related conditions like volumes tolerated or volumes required
-            // condition was not met. Also, In secure mode, control will go to Jsvc
-            // and Datanode process hangs if it does not exit.
+            // 在安全模式下，控制会转到Jsvc，DataNode进程需要显式退出
             LOG.warn("Exiting Datanode");
             terminate(errorCode);
         }
     }
 
+    /**
+     * DataNode的主入口方法
+     * 这是DataNode进程启动的入口点，它会调用secureMain方法进行实际的初始化工作
+     */
     public static void main(String args[]) {
+        // 解析帮助参数，如果用户请求帮助则显示用法并退出
         if (DFSUtil.parseHelpArgument(args, DataNode.USAGE, System.out, true)) {
             System.exit(0);
         }
 
+        // 调用secureMain方法，传入参数和null作为安全资源（非安全模式）
         secureMain(args, null);
     }
 
-    // InterDataNodeProtocol implementation
+    /**
+     * 初始化数据块副本的恢复过程
+     * 
+     * 此方法是InterDatanodeProtocol接口的实现，用于开始块恢复过程
+     * 当一个数据块的副本需要恢复时（例如管道写入失败），其他DataNode会调用此方法
+     * 
+     * @param rBlock 正在恢复的块信息，包含块ID、块池ID和新的生成戳等信息
+     * @return ReplicaRecoveryInfo 包含块恢复所需信息的对象，如当前副本的状态、长度等
+     * @throws IOException 如果存储未初始化或恢复过程中发生IO异常
+     */
     @Override // InterDatanodeProtocol
     public ReplicaRecoveryInfo initReplicaRecovery(RecoveringBlock rBlock)
             throws IOException {
+        // 检查存储系统是否已初始化
         checkStorageState("initReplicaRecovery");
+        // 委托给数据存储组件执行实际的副本恢复初始化操作
         return data.initReplicaRecovery(rBlock);
     }
 
     /**
-     * Update replica with the new generation stamp and length.
+     * 更新正在恢复的副本，设置新的生成戳和长度
+     * 
+     * 此方法是InterDatanodeProtocol接口的实现，用于在块恢复过程中更新副本的元数据
+     * 当主DataNode确定了正确的块大小和生成戳后，会通知其他副本更新自己的信息
+     * 
+     * @param oldBlock 原始块信息
+     * @param recoveryId 新的生成戳（恢复ID）
+     * @param newBlockId 新的块ID
+     * @param newLength 新的块长度
+     * @return String 存储该块的存储卷UUID
+     * @throws IOException 如果存储未初始化或更新过程中发生IO异常
      */
     @Override // InterDatanodeProtocol
     public String updateReplicaUnderRecovery(final ExtendedBlock oldBlock,
                                              final long recoveryId, final long newBlockId, final long newLength)
             throws IOException {
+        // 检查存储系统是否已初始化
         checkStorageState("updateReplicaUnderRecovery");
+        // 委托给数据存储组件执行实际的副本更新操作
         final Replica r = data.updateReplicaUnderRecovery(oldBlock,
                 recoveryId, newBlockId, newLength);
-        // Notify the namenode of the updated block info. This is important
-        // for HA, since otherwise the standby node may lose track of the
-        // block locations until the next block report.
+        // 通知NameNode块信息已更新
+        // 这对于HA模式非常重要，否则备用节点可能会失去对块位置的跟踪，直到下一次块报告
         ExtendedBlock newBlock = new ExtendedBlock(oldBlock);
         newBlock.setGenerationStamp(recoveryId);
         newBlock.setBlockId(newBlockId);
@@ -3425,6 +3579,7 @@ public class DataNode extends ReconfigurableBase
         final String storageID = r.getStorageUuid();
         notifyNamenodeReceivedBlock(newBlock, null, storageID,
                 r.isOnTransientStorage());
+        // 返回存储该块的存储卷UUID
         return storageID;
     }
 
@@ -3461,37 +3616,45 @@ public class DataNode extends ReconfigurableBase
     }
 
     /**
-     * Transfer a replica to the datanode targets.
-     * @param b the block to transfer.
-     *          The corresponding replica must be an RBW or a Finalized.
-     *          Its GS and numBytes will be set to
-     *          the stored GS and the visible length.
-     * @param targets targets to transfer the block to
-     * @param client client name
+     * 为管道恢复传输数据块副本
+     * 
+     * 此方法用于在管道恢复过程中，将一个有效的块副本传输到指定的目标DataNode
+     * 当数据写入管道中的某个节点失败时，需要从其他节点复制数据来重建管道
+     * 
+     * @param b 要传输的块，对应的副本必须是RBW（正在写入）或FINALIZED（已完成）状态
+     * @param targets 目标DataNode列表，块将被传输到这些节点
+     * @param targetStorageTypes 目标节点的存储类型数组
+     * @param targetStorageIds 目标节点的存储ID数组
+     * @param client 客户端名称
+     * @throws IOException 如果传输过程中发生IO异常
      */
     void transferReplicaForPipelineRecovery(final ExtendedBlock b,
                                             final DatanodeInfo[] targets, final StorageType[] targetStorageTypes,
                                             final String[] targetStorageIds, final String client)
             throws IOException {
-        final long storedGS;
-        final long visible;
-        final BlockConstructionStage stage;
+        final long storedGS;      // 存储的块生成戳
+        final long visible;       // 可见的块长度
+        final BlockConstructionStage stage;  // 块构建阶段
 
-        //get replica information
+        // 获取副本信息
         try (AutoCloseableLock lock = dataSetLockManager.readLock(
                 LockLevel.BLOCK_POOl, b.getBlockPoolId())) {
+            // 从存储中获取块信息
             Block storedBlock = data.getStoredBlock(b.getBlockPoolId(),
                     b.getBlockId());
             if (null == storedBlock) {
                 throw new IOException(b + " not found in datanode.");
             }
+            // 获取存储的生成戳
             storedGS = storedBlock.getGenerationStamp();
+            // 验证存储的生成戳不小于请求中的生成戳
             if (storedGS < b.getGenerationStamp()) {
                 throw new IOException(storedGS
                         + " = storedGS < b.getGenerationStamp(), b=" + b);
             }
-            // Update the genstamp with storedGS
+            // 使用存储的生成戳更新块信息
             b.setGenerationStamp(storedGS);
+            // 确定块的状态，设置相应的传输阶段
             if (data.isValidRbw(b)) {
                 stage = BlockConstructionStage.TRANSFER_RBW;
                 LOG.debug("Replica is being written!");
@@ -3504,7 +3667,7 @@ public class DataNode extends ReconfigurableBase
             }
             visible = data.getReplicaVisibleLength(b);
         }
-        //set visible length
+        // set visible length
         b.setNumBytes(visible);
 
         if (targets.length > 0) {
@@ -3529,9 +3692,9 @@ public class DataNode extends ReconfigurableBase
     }
 
     /**
-     * Finalize a pending upgrade in response to DNA_FINALIZE.
-     * @param blockPoolId the block pool to finalize
-     */
+ * * * Finalize a pending upgrade in response to DNA_FINALIZE.
+     * @param blockPoolId the 数据块 pool to finalize
+ */
     void finalizeUpgradeForPool(String blockPoolId) throws IOException {
         storage.finalizeUpgrade(blockPoolId);
     }
@@ -3579,26 +3742,22 @@ public class DataNode extends ReconfigurableBase
         return VersionInfo.getRevision();
     }
 
-    /**
-     * @return the datanode's http port
-     */
+    /** * @返回 the 数据节点's HTTP（超文本传输协议） port */
     public int getInfoPort() {
         return infoPort;
     }
 
-    /**
-     * @return the datanode's https port
-     */
+    /** * @返回 the 数据节点's https port */
     public int getInfoSecurePort() {
         return infoSecurePort;
     }
 
     /**
-     * Returned information is a JSON representation of a map with
-     * name node host name as the key and block pool Id as the value.
+ * * * Returned information is a JSON representation of a map with
+     * name node host name as the key and 数据块 pool Id as the 值.
      * Note that, if there are multiple NNs in an NA nameservice,
-     * a given block pool may be represented twice.
-     */
+     * a given 数据块 pool may be represented twice.
+ */
     @Override // DataNodeMXBean
     public String getNamenodeAddresses() {
         final Map<String, String> info = new HashMap<String, String>();
@@ -3613,19 +3772,17 @@ public class DataNode extends ReconfigurableBase
         return JSON.toString(info);
     }
 
-    /**
-     * Return hostname of the datanode.
-     */
+    /** * 返回 hostname of the 数据节点. */
     @Override // DataNodeMXBean
     public String getDatanodeHostname() {
         return this.hostName;
     }
 
     /**
-     * Returned information is a JSON representation of an array,
+ * * * Returned information is a JSON representation of an array,
      * each element of the array is a map contains the information
-     * about a block pool service actor.
-     */
+     * about a 数据块 pool service actor.
+ */
     @Override // DataNodeMXBean
     public String getBPServiceActorInfo() {
         return JSON.toString(getBPServiceActorInfoMap());
@@ -3645,10 +3802,10 @@ public class DataNode extends ReconfigurableBase
     }
 
     /**
-     * Returned information is a JSON representation of a map with
-     * volume name as the key and value is a map of volume attribute
+ * * * Returned information is a JSON representation of a map with
+     * 卷 name as the key and 值 is a map of 卷 attribute
      * keys to its values
-     */
+ */
     @Override // DataNodeMXBean
     public String getVolumeInfo() {
         if (data == null) {
@@ -3673,45 +3830,93 @@ public class DataNode extends ReconfigurableBase
         }
     }
 
+    /**
+     * 检查集群是否启用了安全认证
+     * 
+     * @return 如果集群启用了安全认证则返回true，否则返回false
+     */
     @Override
     public boolean isSecurityEnabled() {
         return UserGroupInformation.isSecurityEnabled();
     }
 
+    /**
+     * 根据新的配置刷新与NameNode的连接
+     * 
+     * 此方法负责根据提供的配置信息重新初始化或更新DataNode与NameNode之间的连接
+     * 它可以用于动态添加或删除与NameNode的连接，支持HDFS联邦和高可用配置
+     * 
+     * @param conf 包含NameNode连接信息的新配置
+     * @throws IOException 如果刷新过程中发生IO异常
+     */
     public void refreshNamenodes(Configuration conf) throws IOException {
+        // 委托给blockPoolManager处理实际的刷新操作
         blockPoolManager.refreshNamenodes(conf);
     }
 
+    /**
+     * (ClientDatanodeProtocol接口实现) 刷新与NameNode的连接配置
+     * 
+     * 这是一个RPC调用接口，允许客户端（通常是管理员）触发DataNode重新加载NameNode配置
+     * 调用前会检查调用者是否有超级用户权限
+     * 
+     * @throws IOException 如果刷新过程中发生IO异常或调用者没有足够权限
+     */
     @Override // ClientDatanodeProtocol
     public void refreshNamenodes() throws IOException {
+        // 检查调用者是否有超级用户权限
         checkSuperuserPrivilege();
+        // 创建新的Configuration对象，会自动加载最新的配置文件
         setConf(new Configuration());
+        // 使用新配置刷新与NameNode的连接
         refreshNamenodes(getConf());
     }
 
+    /**
+     * (ClientDatanodeProtocol接口实现) 删除指定的块池
+     * 
+     * 此方法用于删除DataNode上与特定块池相关的所有数据和元数据
+     * 通常在HDFS联邦配置中，当需要移除某个NameNode管理的块池时调用
+     * 调用前会检查调用者是否有超级用户权限
+     * 
+     * @param blockPoolId 要删除的块池ID
+     * @param force 是否强制删除，即使该块池仍有数据正在使用
+     * @throws IOException 如果调用者没有足够权限、块池仍在运行或删除过程中发生IO异常
+     */
     @Override // ClientDatanodeProtocol
     public void deleteBlockPool(String blockPoolId, boolean force)
             throws IOException {
+        // 检查调用者是否有超级用户权限
         checkSuperuserPrivilege();
+        // 记录删除块池的请求日志
         LOG.info("deleteBlockPool command received for block pool {}, " +
                 "force={}", blockPoolId, force);
+        // 检查该块池是否仍在运行
         if (blockPoolManager.get(blockPoolId) != null) {
             LOG.warn("The block pool {} is still running, cannot be deleted.",
                     blockPoolId);
+            // 如果块池仍在运行，抛出异常要求先刷新NameNode连接以关闭块池服务
             throw new IOException(
                     "The block pool is still running. First do a refreshNamenodes to " +
                             "shutdown the block pool service");
         }
+        // 检查存储是否已初始化
         checkStorageState("deleteBlockPool");
+        // 委托给数据存储组件执行实际的块池删除操作
         data.deleteBlockPool(blockPoolId, force);
     }
 
     /**
-     * Check if storage has been initialized.
-     * @param methodName caller name
-     * @throws IOException throw IOException if not yet initialized.
+     * 检查存储系统是否已初始化
+     * 
+     * 此方法在执行需要访问存储的操作前调用，确保DataNode的存储系统已正确初始化
+     * 如果存储未初始化，将抛出IOException异常
+     * 
+     * @param methodName 调用此方法的方法名，用于日志记录
+     * @throws IOException 如果存储系统尚未初始化
      */
     private void checkStorageState(String methodName) throws IOException {
+        // 检查存储组件是否为null
         if (data == null) {
             String message = "Storage not yet initialized for " + methodName;
             LOG.debug(message);
@@ -3719,49 +3924,87 @@ public class DataNode extends ReconfigurableBase
         }
     }
 
+    /**
+     * (ClientDatanodeProtocol接口实现) 关闭DataNode服务
+     * 
+     * 此方法用于安全地关闭DataNode服务，通常由管理员通过RPC调用触发
+     * 调用前会检查调用者是否有超级用户权限
+     * 关闭过程是异步执行的，这样可以立即返回RPC响应
+     * 
+     * @param forUpgrade 是否为了升级而关闭，这会影响关闭的行为和延迟时间
+     * @throws IOException 如果调用者没有足够权限或关闭操作已在进行中
+     */
     @Override // ClientDatanodeProtocol
     public synchronized void shutdownDatanode(boolean forUpgrade) throws IOException {
+        // 检查调用者是否有超级用户权限
         checkSuperuserPrivilege();
+        // 记录关闭DataNode的请求日志
         LOG.info("shutdownDatanode command received (upgrade={}). " +
                 "Shutting down Datanode...", forUpgrade);
 
-        // Shutdown can be called only once.
+        // 关闭操作只能执行一次
         if (shutdownInProgress) {
             throw new IOException("Shutdown already in progress.");
         }
+        // 设置关闭标志
         shutdownInProgress = true;
         shutdownForUpgrade = forUpgrade;
 
-        // Asynchronously start the shutdown process so that the rpc response can be
-        // sent back.
+        // 创建一个异步线程来执行实际的关闭过程，这样可以立即返回RPC响应
         Thread shutdownThread = new Thread("Async datanode shutdown thread") {
             @Override
             public void run() {
                 if (!shutdownForUpgrade) {
-                    // Delay the shutdown a bit if not doing for restart.
+                    // 如果不是为了升级而关闭，则稍微延迟关闭过程
                     try {
                         Thread.sleep(1000);
                     } catch (InterruptedException ie) {
+                        // 忽略中断异常
                     }
                 }
+                // 调用实际的关闭方法
                 shutdown();
             }
         };
 
+        // 将关闭线程设置为守护线程，这样它不会阻止JVM退出
         shutdownThread.setDaemon(true);
+        // 启动关闭线程
         shutdownThread.start();
     }
 
-    @Override //ClientDatanodeProtocol
+    /**
+     * (ClientDatanodeProtocol接口实现) 驱逐所有正在写入数据的客户端
+     * 
+     * 此方法用于强制中断所有当前正在向DataNode写入数据的客户端连接
+     * 通常在需要紧急维护或关闭DataNode前调用，以确保数据一致性
+     * 调用前会检查调用者是否有超级用户权限
+     * 
+     * @throws IOException 如果调用者没有足够权限
+     */
+    @Override // ClientDatanodeProtocol
     public void evictWriters() throws IOException {
+        // 检查调用者是否有超级用户权限
         checkSuperuserPrivilege();
+        // 记录驱逐所有写入器的日志
         LOG.info("Evicting all writers.");
+        // 调用数据传输服务器的方法来停止所有写入操作
         xserver.stopWriters();
     }
 
-    @Override //ClientDatanodeProtocol
+    /**
+ * * * (ClientDatanodeProtocol接口实现) 获取DataNode的本地信息
+     * 
+     * 此方法返回DataNode的基本信息，包括版本、配置版本和运行时间
+     * 这些信息对于监控和管理DataNode非常有用
+     * 
+     * @返回 包含DataNode版本信息、配置版本和运行时间的DatanodeLocalInfo对象
+ */
+    @Override // ClientDatanodeProtocol
     public DatanodeLocalInfo getDatanodeInfo() {
+        // 获取DataNode的运行时间（以秒为单位）
         long uptime = ManagementFactory.getRuntimeMXBean().getUptime() / 1000;
+        // 创建并返回包含版本信息、配置版本和运行时间的DatanodeLocalInfo对象
         return new DatanodeLocalInfo(VersionInfo.getVersion(),
                 confVersion, uptime);
     }
@@ -3803,10 +4046,10 @@ public class DataNode extends ReconfigurableBase
     }
 
     /**
-     * @param addr rpc address of the namenode
-     * @return true if the datanode is connected to a NameNode at the
+ * * * @param addr RPC（远程过程调用）（远程过程调用） address of the 名称节点
+     * @返回 true if the 数据节点 is connected to a 名称节点 at the
      * given address
-     */
+ */
     public boolean isConnectedToNN(InetSocketAddress addr) {
         for (BPOfferService bpos : getAllBpOs()) {
             for (BPServiceActor bpsa : bpos.getBPServiceActors()) {
@@ -3819,9 +4062,9 @@ public class DataNode extends ReconfigurableBase
     }
 
     /**
-     * @param bpid block pool Id
-     * @return true - if BPOfferService thread is alive
-     */
+ * * * @param bpid 数据块 pool Id
+     * @返回 true - if BPOfferService 线程 is alive
+ */
     public boolean isBPServiceAlive(String bpid) {
         BPOfferService bp = blockPoolManager.get(bpid);
         return bp != null ? bp.isAlive() : false;
@@ -3832,26 +4075,26 @@ public class DataNode extends ReconfigurableBase
     }
 
     /**
-     * A datanode is considered to be fully started if all the BP threads are
-     * alive and all the block pools are initialized.
+ * * * A 数据节点 is considered to be fully started if all the BP threads are
+     * alive and all the 数据块 pools are initialized.
      *
-     * @return true - if the data node is fully started
-     */
+     * @返回 true - if the data node is fully started
+ */
     public boolean isDatanodeFullyStarted() {
         return isDatanodeFullyStarted(false);
     }
 
     /**
-     * A datanode is considered to be fully started if all the BP threads are
-     * alive and all the block pools are initialized. If checkConnectionToActiveNamenode is true,
-     * the datanode is considered to be fully started if it is also heartbeating to
-     * active namenode in addition to the above-mentioned conditions.
+ * * * A 数据节点 is considered to be fully started if all the BP threads are
+     * alive and all the 数据块 pools are initialized. If checkConnectionToActiveNamenode is true,
+     * the 数据节点 is considered to be fully started if it is also heartbeating to
+     * active 名称节点 in addition to the above-mentioned conditions.
      *
-     * @param checkConnectionToActiveNamenode if true, performs additional check of whether datanode
-     * is heartbeating to active namenode.
-     * @return true if the datanode is fully started and also conditionally connected to active
-     * namenode, false otherwise.
-     */
+     * @param checkConnectionToActiveNamenode if true, performs additional check of whether 数据节点
+     * is heartbeating to active 名称节点.
+     * @返回 true if the 数据节点 is fully started and also conditionally connected to active
+     * 名称节点, false otherwise.
+ */
     public boolean isDatanodeFullyStarted(boolean checkConnectionToActiveNamenode) {
         if (checkConnectionToActiveNamenode) {
             for (BPOfferService bp : blockPoolManager.getAllNamenodeThreads()) {
@@ -3915,9 +4158,7 @@ public class DataNode extends ReconfigurableBase
         return ecReconstuctWriteThrottler;
     }
 
-    /**
-     * Check the disk error synchronously.
-     */
+    /** * Check the 磁盘 error synchronously. */
     @VisibleForTesting
     public void checkDiskError() throws IOException {
         Set<FsVolumeSpi> unhealthyVolumes;
@@ -3956,31 +4197,31 @@ public class DataNode extends ReconfigurableBase
         }
 
         try {
-            // Remove all unhealthy volumes from DataNode.
+            // Remove all unhealthy volumes from 数据节点.
             removeVolumes(unhealthyLocations, false);
         } catch (IOException e) {
             LOG.warn("Error occurred when removing unhealthy storage dirs", e);
         }
         LOG.debug("{}", sb);
-        // send blockreport regarding volume failure
+        // send blockreport regarding 卷 failure
         handleDiskError(sb.toString(), failedNumber);
     }
 
     /**
-     * A bad block need to be handled, either to add to blockScanner suspect queue
-     * or report to NameNode directly.
+ * * * A bad 数据块 need to be handled, either to add to blockScanner suspect queue
+     * or report to 名称节点 directly.
      *
-     * If the method is called by scanner, then the block must be a bad block, we
-     * report it to NameNode directly. Otherwise if we judge it as a bad block
-     * according to exception type, then we try to add the bad block to
+     * If the 方法 is called by scanner, then the 数据块 must be a bad 数据块, we
+     * report it to 名称节点 directly. Otherwise if we judge it as a bad 数据块
+     * according to 异常 type, then we 尝试 to add the bad 数据块 to
      * blockScanner suspect queue if blockScanner is enabled, or report to
-     * NameNode directly otherwise.
+     * 名称节点 directly otherwise.
      *
-     * @param block The suspicious block
-     * @param e The exception encountered when accessing the block
+     * @param 数据块 The suspicious 数据块
+     * @param e The 异常 encountered when accessing the 数据块
      * @param fromScanner Is it from blockScanner. The blockScanner will call this
-     *          method only when it's sure that the block is corrupt.
-     */
+     *          方法 only when it's sure that the 数据块 is corrupt.
+ */
     void handleBadBlock(ExtendedBlock block, IOException e, boolean fromScanner) {
 
         boolean isBadBlock = fromScanner || (e instanceof DiskFileCorruptException
@@ -4237,8 +4478,8 @@ public class DataNode extends ReconfigurableBase
     }
 
     /**
-     * Construct DataTransfer in
-     * {@link DataNode#transferReplicaForPipelineRecovery}.
+ * * Construct DataTransfer in
+     * {@link 数据节点#transferReplicaForPipelineRecovery}.
      *
      * When recover pipeline, BlockConstructionStage is
      * PIPELINE_SETUP_APPEND_RECOVERY,
@@ -4246,7 +4487,7 @@ public class DataNode extends ReconfigurableBase
      * BlockConstructionStage is PIPELINE_CLOSE_RECOVERY, don't need transfer
      * replica. So BlockConstructionStage is PIPELINE_SETUP_APPEND_RECOVERY,
      * PIPELINE_SETUP_STREAMING_RECOVERY.
-     */
+ */
     private static boolean isWrite(BlockConstructionStage stage) {
         return (stage == PIPELINE_SETUP_STREAMING_RECOVERY
                 || stage == PIPELINE_SETUP_APPEND_RECOVERY);

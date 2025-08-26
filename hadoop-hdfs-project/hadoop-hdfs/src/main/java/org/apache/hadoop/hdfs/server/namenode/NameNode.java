@@ -96,41 +96,38 @@ import static org.apache.hadoop.util.ExitUtil.terminate;
 import static org.apache.hadoop.util.ToolRunner.confirmPrompt;
 
 /**********************************************************
- * NameNode serves as both directory namespace manager and
- * "inode table" for the Hadoop DFS.  There is a single NameNode
- * running in any DFS deployment.  (Well, except when there
- * is a second backup/failover NameNode, or when using federated NameNodes.)
+ * NameNode（名称节点）同时充当Hadoop分布式文件系统（DFS）的目录命名空间管理器和
+ * "inode表"。在任何DFS部署中，通常只有一个NameNode在运行。
+ * （当然，在配置了备份/故障转移NameNode或使用联邦NameNodes的情况下除外。）
  *
- * The NameNode controls two critical tables:
- *   1)  filename{@literal ->}blocksequence (namespace)
- *   2)  block{@literal ->}machinelist ("inodes")
+ * NameNode控制两个关键表：
+ *   1) 文件名{@literal ->}数据块序列（命名空间）
+ *   2) 数据块{@literal ->}机器列表（"inode信息"）
  *
- * The first table is stored on disk and is very precious.
- * The second table is rebuilt every time the NameNode comes up.
+ * 第一个表存储在磁盘上，非常重要。
+ * 第二个表在NameNode每次启动时重新构建。
  *
- * 'NameNode' refers to both this class as well as the 'NameNode server'.
- * The 'FSNamesystem' class actually performs most of the filesystem
- * management.  The majority of the 'NameNode' class itself is concerned
- * with exposing the IPC interface and the HTTP server to the outside world,
- * plus some configuration management.
+ * 'NameNode'既指此类，也指'NameNode服务器'。
+ * 'FSNamesystem'类实际上执行大部分文件系统管理操作。
+ * 'NameNode'类本身主要负责向外部世界公开IPC接口和HTTP服务器，
+ * 以及一些配置管理。
  *
- * NameNode implements the
- * {@link org.apache.hadoop.hdfs.protocol.ClientProtocol} interface, which
- * allows clients to ask for DFS services.
- * {@link org.apache.hadoop.hdfs.protocol.ClientProtocol} is not designed for
- * direct use by authors of DFS client code.  End-users should instead use the
- * {@link org.apache.hadoop.fs.FileSystem} class.
+ * NameNode实现了
+ * {@link org.apache.hadoop.hdfs.protocol.ClientProtocol}接口，该接口
+ * 允许客户端请求DFS服务。
+ * {@link org.apache.hadoop.hdfs.protocol.ClientProtocol}并非设计用于
+ * DFS客户端代码作者直接使用。最终用户应使用
+ * {@link org.apache.hadoop.fs.FileSystem}类。
  *
- * NameNode also implements the
- * {@link org.apache.hadoop.hdfs.server.protocol.DatanodeProtocol} interface,
- * used by DataNodes that actually store DFS data blocks.  These
- * methods are invoked repeatedly and automatically by all the
- * DataNodes in a DFS deployment.
+ * NameNode还实现了
+ * {@link org.apache.hadoop.hdfs.server.protocol.DatanodeProtocol}接口，
+ * 供实际存储DFS数据块的DataNode使用。
+ * DFS部署中的所有DataNode会自动反复调用这些方法。
  *
- * NameNode also implements the
- * {@link org.apache.hadoop.hdfs.server.protocol.NamenodeProtocol} interface,
- * used by secondary namenodes or rebalancing processes to get partial
- * NameNode state, for example partial blocksMap etc.
+ * NameNode还实现了
+ * {@link org.apache.hadoop.hdfs.server.protocol.NamenodeProtocol}接口，
+ * 供SecondaryNameNode或负载均衡进程获取部分
+ * NameNode状态，例如部分blocksMap等。
  **********************************************************/
 @InterfaceAudience.Private
 @Metrics(context = "dfs")
@@ -143,39 +140,37 @@ public class NameNode extends ReconfigurableBase implements
     private InMemoryLevelDBAliasMapServer levelDBAliasMapServer;
 
     /**
-     * Categories of operations supported by the namenode.
+     * NameNode支持的操作类别。
      */
     public enum OperationCategory {
-        /** Operations that are state agnostic */
+        /** 与状态无关的操作 */
         UNCHECKED,
-        /** Read operation that does not change the namespace state */
+        /** 不更改命名空间状态的读取操作 */
         READ,
-        /** Write operation that changes the namespace state */
+        /** 更改命名空间状态的写入操作 */
         WRITE,
-        /** Operations related to checkpointing */
+        /** 与检查点相关的操作 */
         CHECKPOINT,
-        /** Operations related to {@link JournalProtocol} */
+        /** 与JournalProtocol相关的操作 */
         JOURNAL
     }
 
     /**
-     * HDFS configuration can have three types of parameters:
+     * HDFS配置可以有三种类型的参数：
      * <ol>
-     * <li>Parameters that are common for all the name services in the cluster.</li>
-     * <li>Parameters that are specific to a name service. These keys are suffixed
-     * with nameserviceId in the configuration. For example,
-     * "dfs.namenode.rpc-address.nameservice1".</li>
-     * <li>Parameters that are specific to a single name node. These keys are suffixed
-     * with nameserviceId and namenodeId in the configuration. for example,
-     * "dfs.namenode.rpc-address.nameservice1.namenode1"</li>
+     * <li>对集群中所有名称服务通用的参数。</li>
+     * <li>特定于某个名称服务的参数。这些键在配置中会添加nameserviceId后缀。
+     * 例如："dfs.namenode.rpc-address.nameservice1"。</li>
+     * <li>特定于单个名称节点的参数。这些键在配置中会添加nameserviceId和namenodeId后缀。
+     * 例如："dfs.namenode.rpc-address.nameservice1.namenode1"</li>
      * </ol>
      *
-     * In the latter cases, operators may specify the configuration without
-     * any suffix, with a nameservice suffix, or with a nameservice and namenode
-     * suffix. The more specific suffix will take precedence.
+     * 在后面两种情况下，管理员可以指定不带任何后缀的配置，
+     * 或带名称服务后缀的配置，或带名称服务和名称节点后缀的配置。
+     * 更具体的后缀将优先生效。
      *
-     * These keys are specific to a given namenode, and thus may be configured
-     * globally, for a nameservice, or for a specific namenode within a nameservice.
+     * 这些键特定于给定的名称节点，因此可以在全局配置，
+     * 或针对名称服务配置，或针对名称服务中的特定名称节点配置。
      */
     public static final String[] NAMENODE_SPECIFIC_KEYS = {
             DFS_NAMENODE_RPC_ADDRESS_KEY,
@@ -677,8 +672,17 @@ public class NameNode extends ReconfigurableBase implements
                 conf.getTrimmed(DFS_NAMENODE_HTTP_ADDRESS_KEY, DFS_NAMENODE_HTTP_ADDRESS_DEFAULT));
     }
 
+    /**
+     * 加载文件系统命名空间到内存中。
+     * 此方法负责初始化FSNamesystem对象，这是NameNode的核心组件，
+     * 负责管理HDFS的命名空间、文件系统元数据和数据块映射等关键功能。
+     * 
+     * @param conf Hadoop配置对象
+     * @throws IOException 如果在从磁盘加载FSNamesystem过程中发生I/O错误
+     */
     protected void loadNamesystem(Configuration conf) throws IOException {
-        //todo     // 从磁盘中加载 FSNamesystem
+        // 从磁盘中加载FSNamesystem对象
+        // 该操作会读取并解析fsimage和editlog文件，将HDFS的完整命名空间加载到内存
         this.namesystem = FSNamesystem.loadFromDisk(conf);
     }
 
@@ -723,10 +727,16 @@ public class NameNode extends ReconfigurableBase implements
 
     /**
      * Initialize name-node.
-     *
-     * @param conf the configuration
+    /**
+     * 初始化NameNode的核心组件和服务。
+     * 这是NameNode启动过程中的关键方法，负责初始化度量系统、监控组件、
+     * 文件系统命名空间、RPC服务和HTTP服务等核心功能模块。
+     * 
+     * @param conf Hadoop配置对象
+     * @throws IOException 如果在初始化过程中发生I/O错误
      */
     protected void initialize(Configuration conf) throws IOException {
+        // 配置度量系统的百分位间隔
         if (conf.get(HADOOP_USER_GROUP_METRICS_PERCENTILES_INTERVALS) == null) {
             String intervals = conf.get(DFS_METRICS_PERCENTILES_INTERVALS_KEY);
             if (intervals != null) {
@@ -735,17 +745,20 @@ public class NameNode extends ReconfigurableBase implements
             }
         }
 
+        // 设置用户组信息并以NameNode用户身份登录
         UserGroupInformation.setConfiguration(conf);
         loginAsNameNodeUser(conf);
 
+        // 初始化度量系统和启动进度监控
         NameNode.initMetrics(conf, this.getRole());
         StartupProgressMetrics.register(startupProgress);
-        //todo     //构造JvmPauseMonitor对象， 并启动
+        // 构造JVM暂停监控对象并启动
         pauseMonitor = new JvmPauseMonitor();
         pauseMonitor.init(conf);
         pauseMonitor.start();
         metrics.getJvmMetrics().setPauseMonitor(pauseMonitor);
 
+        // 初始化GC时间监控（如果启用）
         if (conf.getBoolean(DFS_NAMENODE_GC_TIME_MONITOR_ENABLE,
                 DFS_NAMENODE_GC_TIME_MONITOR_ENABLE_DEFAULT)) {
             long observationWindow = conf.getTimeDuration(
@@ -761,31 +774,31 @@ public class NameNode extends ReconfigurableBase implements
             gcTimeMonitor.start();
             metrics.getJvmMetrics().setGcTimeMonitor(gcTimeMonitor);
         }
-        //todo     //启动HTTP服务
+        // 启动HTTP服务（仅对主NameNode角色）
         if (NamenodeRole.NAMENODE == role) {
             startHttpServer(conf);
         }
-        //todo // 初始化FSNamesystem
-        //    // NameNode将对文件系统的管理都委托给了FSNamesystem对象，
-        //    // NameNode会调用FSNamesystem.loadFromDisk()创建FSNamesystem对象。
-        //    //
-        //    // FSNamesystem.loadFromDisk()首先调用构造方法构造FSNamesystem对象，
-        //    // 然后将fsimage以及editlog文件加载到命名空间中。
+        // 初始化文件系统命名空间（FSNamesystem）
+        // NameNode将对文件系统的管理都委托给了FSNamesystem对象，
+        // 此方法会调用FSNamesystem.loadFromDisk()创建FSNamesystem对象，
+        // 并将fsimage和editlog文件加载到内存中的命名空间
         loadNamesystem(conf);
+        // 启动别名映射服务器（如果需要）
         startAliasMapServerIfNecessary(conf);
-        //todo     //创建RPC服务
+        // 创建RPC服务
         rpcServer = createRpcServer(conf);
 
+        // 初始化可重新配置的退避键
         initReconfigurableBackoffKey();
 
+        // 如果客户端访问地址未设置，使用RPC服务器的绑定地址
         if (clientNamenodeAddress == null) {
-            // This is expected for MiniDFSCluster. Set it now using
-            // the RPC server's bind address.
+            // 这在MiniDFSCluster中是预期的行为。现在使用RPC服务器的绑定地址设置它。
             clientNamenodeAddress =
                     NetUtils.getHostPortString(getNameNodeAddress());
-            LOG.info("Clients are to use " + clientNamenodeAddress + " to access"
-                    + " this namenode/service.");
+            LOG.info("客户端应使用 " + clientNamenodeAddress + " 访问此namenode/服务。");
         }
+        // 设置HTTP服务器的相关属性（仅对主NameNode角色）
         if (NamenodeRole.NAMENODE == role) {
             httpServer.setNameNodeAddress(getNameNodeAddress());
             httpServer.setFSImage(getFSImage());
@@ -793,9 +806,10 @@ public class NameNode extends ReconfigurableBase implements
                 httpServer.setAliasMap(levelDBAliasMapServer.getAliasMap());
             }
         }
-        //todo     //启动httpServer以及 rpcServer
+        // 启动HTTP服务和RPC服务
         startCommonServices(conf);
-        //todo     //启动计时器定期将NameNode度量写入日志文件。此行为可由配置禁用。
+        // 启动计时器定期将NameNode度量写入日志文件
+        // 此行为可通过配置参数DFS_NAMENODE_METRICS_LOG_PERIOD_SECONDS禁用
         startMetricsLogger(conf);
     }
 
@@ -870,10 +884,20 @@ public class NameNode extends ReconfigurableBase implements
         return new NameNodeRpcServer(conf, this);
     }
 
-    /** Start the services common to active and standby states */
+    /**
+     * 启动Active和Standby状态共享的通用服务。
+     * 此方法负责启动NameNode的核心服务组件，包括命名空间服务、RPC服务、HTTP服务
+     * 和配置的插件等，是NameNode初始化过程的最后阶段。
+     * 
+     * @param conf Hadoop配置对象
+     * @throws IOException 如果在启动服务过程中发生I/O错误
+     */
     private void startCommonServices(Configuration conf) throws IOException {
+        // 启动FSNamesystem的通用服务
         namesystem.startCommonServices(conf, haContext);
+        // 注册NameNode的JMX MBean，用于监控和管理
         registerNNSMXBean();
+        // 如果不是主NameNode角色（如BackupNode或CheckpointNode），也需要启动HTTP服务
         if (NamenodeRole.NAMENODE != role) {
             startHttpServer(conf);
             httpServer.setNameNodeAddress(getNameNodeAddress());
@@ -882,45 +906,60 @@ public class NameNode extends ReconfigurableBase implements
                 httpServer.setAliasMap(levelDBAliasMapServer.getAliasMap());
             }
         }
+        // 启动RPC服务器，开始处理客户端和DataNode的请求
         rpcServer.start();
+        // 加载配置的NameNode插件
         try {
             plugins = conf.getInstances(DFS_NAMENODE_PLUGINS_KEY,
                     ServicePlugin.class);
         } catch (RuntimeException e) {
             String pluginsValue = conf.get(DFS_NAMENODE_PLUGINS_KEY);
-            LOG.error("Unable to load NameNode plugins. Specified list of plugins: " +
+            LOG.error("无法加载NameNode插件。指定的插件列表: " +
                     pluginsValue, e);
             throw e;
         }
+        // 启动每个插件
         for (ServicePlugin p : plugins) {
             try {
                 p.start(this);
             } catch (Throwable t) {
-                LOG.warn("ServicePlugin " + p + " could not be started", t);
+                LOG.warn("服务插件 " + p + " 无法启动", t);
             }
         }
-        LOG.info("{} RPC up at: {}.", getRole(), getNameNodeAddress());
+        // 记录RPC服务启动成功的日志
+        LOG.info("{} RPC服务已启动在: {}.", getRole(), getNameNodeAddress());
         if (rpcServer.getServiceRpcAddress() != null) {
-            LOG.info("{} service RPC up at: {}.", getRole(), rpcServer.getServiceRpcAddress());
+            LOG.info("{} 服务RPC已启动在: {}.", getRole(), rpcServer.getServiceRpcAddress());
         }
         if (rpcServer.getLifelineRpcAddress() != null) {
-            LOG.info("{} lifeline RPC up at: {}.", getRole(), rpcServer.getLifelineRpcAddress());
+            LOG.info("{} 生命线RPC已启动在: {}.", getRole(), rpcServer.getLifelineRpcAddress());
         }
     }
 
+    /**
+     * 停止Active和Standby状态共享的通用服务。
+     * 此方法负责停止NameNode的核心服务组件，包括RPC服务、命名空间服务、
+     * 监控组件、插件和HTTP服务，通常在NameNode关闭时调用。
+     * 各组件的停止顺序经过精心设计，以确保资源的安全释放和状态的一致性。
+     */
     private void stopCommonServices() {
+        // 停止RPC服务，不再接受新的客户端和DataNode请求
         if (rpcServer != null) rpcServer.stop();
+        // 关闭文件系统命名空间，释放相关资源
         if (namesystem != null) namesystem.close();
+        // 停止JVM暂停监控器
         if (pauseMonitor != null) pauseMonitor.stop();
+        // 停止所有插件服务
         if (plugins != null) {
             for (ServicePlugin p : plugins) {
                 try {
                     p.stop();
                 } catch (Throwable t) {
-                    LOG.warn("ServicePlugin " + p + " could not be stopped", t);
+                    LOG.warn("服务插件 " + p + " 无法停止", t);
                 }
             }
         }
+        // 停止HTTP服务
         stopHttpServer();
     }
 
@@ -1004,56 +1043,68 @@ public class NameNode extends ReconfigurableBase implements
         this(conf, NamenodeRole.NAMENODE);
     }
 
+    /**
+     * NameNode的构造函数，负责初始化NameNode实例的各个组件和状态。
+     * 这是创建NameNode实例的核心方法，包含了初始化跟踪器、角色设置、
+     * 高可用配置检查以及状态转换等关键步骤。
+     * 
+     * @param conf Hadoop配置对象
+     * @param role NameNode的角色（如NAMENODE、BACKUP、CHECKPOINT等）
+     * @throws IOException 如果在初始化过程中发生I/O错误
+     */
     protected NameNode(Configuration conf, NamenodeRole role)
             throws IOException {
         super(conf);
+        // 创建跟踪器用于分布式跟踪
         this.tracer = new Tracer.Builder("NameNode").
                 conf(TraceUtils.wrapHadoopConf(NAMENODE_HTRACE_PREFIX, conf)).
                 build();
         this.role = role;
         String nsId = getNameServiceId(conf);
         String namenodeId = HAUtil.getNameNodeId(conf, nsId);
+        // 获取客户端访问此NameNode的地址
         clientNamenodeAddress = NameNodeUtils.getClientNamenodeAddress(
                 conf, nsId);
 
         if (clientNamenodeAddress != null) {
-            LOG.info("Clients should use {} to access"
-                    + " this namenode/service.", clientNamenodeAddress);
+            LOG.info("客户端应使用 {} 访问此namenode/服务。", clientNamenodeAddress);
         }
-        //todo     // 根据配置确认是否开启了HA
+        // 根据配置确认是否开启了高可用(HA)
         this.haEnabled = HAUtil.isHAEnabled(conf, nsId);
-        //todo     //非HA ==> ACTIVE_STATE
+        // 创建适当的HA状态（非HA模式下默认为ACTIVE_STATE）
         state = createHAState(conf);
+        // 配置是否允许从Standby节点读取数据
         this.allowStaleStandbyReads = HAUtil.shouldAllowStandbyReads(conf);
         this.haContext = createHAContext();
         try {
             initializeGenericKeys(conf, nsId, namenodeId);
-            //todo       //执行初始化操作!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+            // 执行核心初始化操作
             initialize(getConf());
-            //todo //初始化完成后， Namenode进入Standby状态
-            //        //在这里会开启StandbyCheckpointer里面的
-            //        //  checkpointer 线程. 定时合并&处理images文件
+            // 初始化完成后，NameNode准备进入相应状态
+            // 在Standby模式下，会开启checkpointer线程定时合并处理image文件
             state.prepareToEnterState(haContext);
             try {
                 haContext.writeLock();
-                //todo 这一步就可以看到namenode为active了
+                // 执行状态转换，进入Active或Standby状态
                 state.enterState(haContext);
             } finally {
                 haContext.writeUnlock();
             }
         } catch (IOException e) {
-            //todo       //出现异常， 直接停止Namenode服务
+            // 出现异常时，停止NameNode服务
             this.stopAtException(e);
             throw e;
         } catch (HadoopIllegalArgumentException e) {
-            //todo       //直接停止Namenode服务
+            // 出现参数异常时，停止NameNode服务
             this.stopAtException(e);
             throw e;
         }
+        // 配置在安全模式下是否不自动转为Active状态
         notBecomeActiveInSafemode = conf.getBoolean(
                 DFS_HA_NN_NOT_BECOME_ACTIVE_IN_SAFEMODE,
                 DFS_HA_NN_NOT_BECOME_ACTIVE_IN_SAFEMODE_DEFAULT);
         this.started.set(true);
+        // 注册到度量系统
         DefaultMetricsSystem.instance().register(this);
     }
 
@@ -1066,33 +1117,55 @@ public class NameNode extends ReconfigurableBase implements
         }
     }
 
+    /**
+     * 根据配置创建适当的高可用(HA)状态对象。
+     * 此方法决定NameNode启动后的初始状态，可能是Active、Standby或Observer状态，
+     * 取决于配置参数和启动选项。
+     * 
+     * @param conf Hadoop配置对象
+     * @return 创建的HAState对象，代表NameNode的初始状态
+     */
     protected HAState createHAState(Configuration conf) {
         StartupOption startOpt = getStartupOption(conf);
+        // 非HA模式或升级模式下，默认为Active状态
         if (!haEnabled || startOpt == StartupOption.UPGRADE
                 || startOpt == StartupOption.UPGRADEONLY) {
             return ACTIVE_STATE;
-        } else if (conf.getBoolean(DFS_NAMENODE_OBSERVER_ENABLED_KEY,
+        } 
+        // 配置为Observer模式或启动选项指定Observer时，返回Observer状态
+        else if (conf.getBoolean(DFS_NAMENODE_OBSERVER_ENABLED_KEY,
                 DFS_NAMENODE_OBSERVER_ENABLED_DEFAULT)
                 || startOpt == StartupOption.OBSERVER) {
-            // Set Observer state using config instead of startup option
-            // This allows other startup options to be used when starting observer.
-            // e.g. rollingUpgrade
+            // 使用配置而非启动选项设置Observer状态
+            // 这样可以在启动Observer时使用其他启动选项，例如rollingUpgrade
             return OBSERVER_STATE;
-        } else {
+        } 
+        // 默认情况下，在HA模式下返回Standby状态
+        else {
             return STANDBY_STATE;
         }
     }
 
+    /**
+     * 创建高可用(HA)上下文对象，用于支持NameNode的状态转换和故障转移。
+     * HAContext提供了NameNode在Active、Standby和Observer状态之间转换所需的
+     * 基础设施，包括锁机制和状态转换逻辑。
+     * 
+     * @return 创建的HAContext对象，用于管理NameNode的高可用状态转换
+     */
     protected HAContext createHAContext() {
+        // 创建NameNode专用的高可用上下文对象
         return new NameNodeHAContext();
     }
 
     /**
-     * Wait for service to finish.
-     * (Normally, it runs forever.)
+     * 等待NameNode服务完成。
+     * 这个方法会阻塞当前线程，直到NameNode的RPC服务终止。通常情况下，
+     * NameNode服务会一直运行，除非显式停止或发生严重故障。
      */
     public void join() {
         try {
+            // 等待RPC服务结束
             rpcServer.join();
         } catch (InterruptedException ie) {
             LOG.info("Caught interrupted exception", ie);
@@ -1100,38 +1173,52 @@ public class NameNode extends ReconfigurableBase implements
     }
 
     /**
-     * Stop all NameNode threads and wait for all to finish.
+     * 停止NameNode的所有线程和服务，并等待它们完成。
+     * 此方法是NameNode生命周期管理的关键部分，负责安全地关闭所有组件，
+     * 包括高可用状态、度量系统、RPC服务、HTTP服务和命名空间等。
+     * 各组件的关闭顺序经过精心设计，以确保资源的安全释放和状态的一致性。
      */
     public void stop() {
         synchronized (this) {
+            // 检查是否已经请求停止，如果是则直接返回
             if (stopRequested)
                 return;
+            // 设置停止请求标志
             stopRequested = true;
         }
         try {
+            // 退出当前的HA状态
             if (state != null) {
                 state.exitState(haContext);
             }
         } catch (ServiceFailedException e) {
-            LOG.warn("Encountered exception while exiting state", e);
+            LOG.warn("退出状态时遇到异常", e);
         } finally {
+            // 停止度量记录器
             stopMetricsLogger();
+            // 停止通用服务（RPC服务、HTTP服务等）
             stopCommonServices();
+            // 关闭度量系统
             if (metrics != null) {
                 metrics.shutdown();
             }
+            // 关闭命名空间
             if (namesystem != null) {
                 namesystem.shutdown();
             }
+            // 注销JMX MBean
             if (nameNodeStatusBeanName != null) {
                 MBeans.unregister(nameNodeStatusBeanName);
                 nameNodeStatusBeanName = null;
             }
+            // 关闭别名映射服务器
             if (levelDBAliasMapServer != null) {
                 levelDBAliasMapServer.close();
             }
         }
+        // 更新启动状态标志
         started.set(false);
+        // 关闭分布式跟踪器
         tracer.close();
     }
 
@@ -1730,17 +1817,25 @@ public class NameNode extends ReconfigurableBase implements
                 StartupOption.METADATAVERSION, fs, null);
     }
 
+    /**
+     * 创建并初始化NameNode实例，根据命令行参数执行不同的操作。
+     * 这是启动NameNode服务的主要入口点，负责解析参数并根据不同的启动选项执行相应操作。
+     * 
+     * @param argv 命令行参数数组
+     * @param conf Hadoop配置对象，如果为null则创建新的HdfsConfiguration
+     * @return 创建的NameNode实例，或在某些操作（如格式化）后返回null
+     * @throws IOException 如果在创建或初始化过程中发生I/O错误
+     */
     public static NameNode createNameNode(String argv[], Configuration conf)
             throws IOException {
         LOG.info("createNameNode " + Arrays.asList(argv));
-        //todo     //构建配置文件
+        // 创建配置对象（如果为null）
         if (conf == null)
             conf = new HdfsConfiguration();
-        // Parse out some generic args into Configuration.
+        // 解析通用参数到配置中
         GenericOptionsParser hParser = new GenericOptionsParser(conf, argv);
         argv = hParser.getRemainingArgs();
-        // Parse the rest, NN specific args.
-        //todo     //解析命令行的参数
+        // 解析NameNode特定参数
         StartupOption startOpt = parseArguments(argv);
         if (startOpt == null) {
             printUsage(System.err);
@@ -1749,65 +1844,62 @@ public class NameNode extends ReconfigurableBase implements
         setStartupOption(conf, startOpt);
 
         boolean aborted = false;
-        //todo     //根据启动选项调用对应的方法执行操作
+        // 根据启动选项执行相应操作
         switch (startOpt) {
-            //todo     //格式化当前Namenode， 调用format()方法执行格式化操作
+            // 格式化NameNode，调用format()方法执行格式化操作
             case FORMAT:
                 aborted = format(conf, startOpt.getForceFormat(),
                         startOpt.getInteractiveFormat());
                 terminate(aborted ? 1 : 0);
-                return null; // avoid javac warning
+                return null; // 避免javac警告
             case GENCLUSTERID:
                 String clusterID = NNStorage.newClusterID();
-                LOG.info("Generated new cluster id: {}", clusterID);
+                LOG.info("生成新的集群ID: {}", clusterID);
                 terminate(0);
                 return null;
-            //todo     //回滚上一次升级， 调用doRollback()方法执行回滚操作。
+            // 回滚上一次升级，调用doRollback()方法执行回滚操作
             case ROLLBACK:
                 aborted = doRollback(conf, true);
                 terminate(aborted ? 1 : 0);
-                return null; // avoid warning
-            //todo // 拷贝Active Namenode的最新命名空间数据到StandbyNamenode，
-            // todo 调用BootstrapStandby.run()方法执行操作
+                return null; // 避免警告
+            // 拷贝Active NameNode的最新命名空间数据到Standby NameNode
             case BOOTSTRAPSTANDBY:
                 String[] toolArgs = Arrays.copyOfRange(argv, 1, argv.length);
                 int rc = BootstrapStandby.run(toolArgs, conf);
                 terminate(rc);
-                return null; // avoid warning
-            //todo //初始化editlog的共享存储空间， 并从Active
-            //todo    //Namenode中拷贝足够的editlog数据， 使得Standby节点能够顺利启动。 这里调用
-            //todo     //了静态方法initializeSharedEdits()执行操作
+                return null; // 避免警告
+            // 初始化editlog的共享存储空间，并从Active
+            // NameNode中拷贝足够的editlog数据，使Standby节点能够顺利启动
             case INITIALIZESHAREDEDITS:
                 aborted = initializeSharedEdits(conf,
                         startOpt.getForceFormat(),
                         startOpt.getInteractiveFormat());
                 terminate(aborted ? 1 : 0);
-                return null; // avoid warning
-            //todo     // 参看下面的CHECKPOINT代码 .
+                return null; // 避免警告
+            // 启动备份节点或检查点节点
             case BACKUP:
-                //todo     //启动checkpoint节点， 也是直接构造BackupNode对象并返回。
             case CHECKPOINT:
                 NamenodeRole role = startOpt.toNodeRole();
                 DefaultMetricsSystem.initialize(role.toString().replace(" ", ""));
                 return new BackupNode(conf, role);
-            //todo     //恢复损坏的元数据以及文件系统， 这里调用了doRecovery()方法执行操作
+            // 恢复损坏的元数据以及文件系统
             case RECOVER:
                 NameNode.doRecovery(startOpt, conf);
                 return null;
-                //todo     //确认配置文件夹存在， 并且打印fsimage文件和文件系统的元数据版本
+                // 确认配置文件夹存在，并打印fsimage文件和文件系统的元数据版本
             case METADATAVERSION:
                 printMetadataVersion(conf);
                 terminate(0);
-                return null; // avoid javac warning
-            //todo     //升级Namenode， 升级完成后关闭Namenode。
+                return null; // 避免javac警告
+            // 升级NameNode，升级完成后关闭NameNode
             case UPGRADEONLY:
                 DefaultMetricsSystem.initialize("NameNode");
                 new NameNode(conf);
                 terminate(0);
                 return null;
-                //todo     //在默认情况下直接构造NameNode对象并返回
+                // 默认情况下直接构造并启动NameNode对象
             default:
-                //todo       // 初始化 度量服务
+                // 初始化度量服务
                 DefaultMetricsSystem.initialize("NameNode");
                 return new NameNode(conf);
         }
@@ -1866,28 +1958,37 @@ public class NameNode extends ReconfigurableBase implements
     }
 
     /**
-     * todo Namenode实体在代码实现中主要对应于三个类， 即NameNode类、NameNodeRpcServer类以及FSNamesystem类。
-     *    NameNodeRpcServer类用于接收和处理所有的RPC请求，
-     *    FSNamesystem类负责实现Namenode的所有逻辑，
-     *    NameNode类则负责管理Namenode配置、 RPC接口以及HTTP接口等
+     * NameNode实体在代码实现中主要对应于三个核心类：
+     * <ol>
+     * <li>NameNodeRpcServer类：用于接收和处理所有的RPC请求</li>
+     * <li>FSNamesystem类：负责实现NameNode的所有核心逻辑</li>
+     * <li>NameNode类：负责管理NameNode配置、RPC接口以及HTTP接口等</li>
+     * </ol>
      */
 
+    /**
+     * NameNode的主入口方法，负责启动NameNode服务。
+     * @param argv 命令行参数
+     * @throws Exception 如果启动过程中发生任何异常
+     */
     public static void main(String argv[]) throws Exception {
-        //todo 参数校验
+        // 解析并检查帮助参数
         if (DFSUtil.parseHelpArgument(argv, NameNode.USAGE, System.out, true)) {
             System.exit(0);
         }
 
         try {
+            // 记录启动和关闭消息
             StringUtils.startupShutdownMessage(NameNode.class, argv, LOG);
-            //todo 创建namenode对象
+            // 创建并初始化NameNode对象
             NameNode namenode = createNameNode(argv, null);
             if (namenode != null) {
+                // 等待NameNode线程结束
                 namenode.join();
             }
         } catch (Throwable e) {
-            LOG.error("Failed to start namenode.", e);
-            //todo 异常退出
+            LOG.error("启动NameNode失败。", e);
+            // 异常情况下退出JVM
             terminate(1, e);
         }
     }

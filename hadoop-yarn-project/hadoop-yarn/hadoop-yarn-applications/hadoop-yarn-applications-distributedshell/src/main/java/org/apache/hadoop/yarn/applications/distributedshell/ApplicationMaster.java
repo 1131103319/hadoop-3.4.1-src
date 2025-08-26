@@ -189,177 +189,206 @@ import org.slf4j.LoggerFactory;
  * container's {@link ContainerId}.
  *
  * <p>
- * After the job has been completed, the <code>ApplicationMaster</code> has to
- * send a {@link FinishApplicationMasterRequest} to the
- * <code>ResourceManager</code> to inform it that the
- * <code>ApplicationMaster</code> has been completed.
+ * ApplicationMaster是YARN应用程序的核心组件，负责向ResourceManager请求资源、管理任务执行以及监控容器状态
+ * </p>
+ * <p>
+ * 当作业完成后，ApplicationMaster需要向ResourceManager发送{@link FinishApplicationMasterRequest}请求，
+ * 通知ResourceManager应用已经完成
+ * </p>
  */
 @InterfaceAudience.Public
 @InterfaceStability.Unstable
 public class ApplicationMaster {
 
+  // 日志记录器
   private static final Logger LOG = LoggerFactory
       .getLogger(ApplicationMaster.class);
 
   @VisibleForTesting
   @Private
+  // 分布式shell事件类型枚举
   public enum DSEvent {
-    DS_APP_ATTEMPT_START, DS_APP_ATTEMPT_END, DS_CONTAINER_START, DS_CONTAINER_END
+    DS_APP_ATTEMPT_START, // 应用尝试启动事件
+    DS_APP_ATTEMPT_END,   // 应用尝试结束事件
+    DS_CONTAINER_START,   // 容器启动事件
+    DS_CONTAINER_END      // 容器结束事件
   }
   
   @VisibleForTesting
   @Private
+  // 分布式shell实体类型枚举
   public enum DSEntity {
-    DS_APP_ATTEMPT, DS_CONTAINER
+    DS_APP_ATTEMPT, // 应用尝试实体
+    DS_CONTAINER    // 容器实体
   }
 
+  // YARN Shell应用标识
   private static final String YARN_SHELL_ID = "YARN_SHELL_ID";
 
-  // Configuration
+  // 配置对象
   private Configuration conf;
 
-  // Handle to communicate with the Resource Manager
+  // 与ResourceManager通信的客户端接口
   @SuppressWarnings("rawtypes")
   private AMRMClientAsync amRMClient;
 
-  // In both secure and non-secure modes, this points to the job-submitter.
+  // 应用提交者的用户组信息（无论安全模式还是非安全模式）
   @VisibleForTesting
   UserGroupInformation appSubmitterUgi;
 
+  // 用户主目录路径
   private Path homeDirectory;
 
-  // Handle to communicate with the Node Manager
+  // 与NodeManager通信的客户端接口
   private NMClientAsync nmClientAsync;
-  // Listen to process the response from the Node Manager
+  // 处理NodeManager响应的监听器
   private NMCallbackHandler containerListener;
 
-  // Application Attempt Id ( combination of attemptId and fail count )
+  // 应用尝试ID（包含尝试ID和失败次数）
   @VisibleForTesting
   protected ApplicationAttemptId appAttemptID;
 
+  // 应用ID
   private ApplicationId appId;
+  // 应用名称
   private String appName;
 
   // TODO
-  // For status update for clients - yet to be implemented
-  // Hostname of the container
+  // 客户端状态更新功能 - 尚未实现
+  // 容器的主机名
   private String appMasterHostname = "";
-  // Port on which the app master listens for status updates from clients
+  // 应用主控监听客户端状态更新的端口
   private int appMasterRpcPort = -1;
-  // Tracking url to which app master publishes info for clients to monitor
+  // 应用主控发布监控信息的跟踪URL
   private String appMasterTrackingUrl = "";
 
+  // 是否启用Timeline Service V2
   private boolean timelineServiceV2Enabled = false;
 
+  // 是否启用Timeline Service V1
   private boolean timelineServiceV1Enabled = false;
 
-  // App Master configuration
-  // No. of containers to run shell command on
+  // 应用主控配置
+  // 运行shell命令的容器数量
   @VisibleForTesting
   protected int numTotalContainers = 1;
-  // Memory to request for the container on which the shell command will run
+  // 默认容器内存大小（GB）
   private static final long DEFAULT_CONTAINER_MEMORY = 10;
+  // 容器内存大小（GB）
   private long containerMemory = DEFAULT_CONTAINER_MEMORY;
-  // VirtualCores to request for the container on which the shell command will run
+  // 默认容器虚拟CPU核心数
   private static final int DEFAULT_CONTAINER_VCORES = 1;
+  // 容器虚拟CPU核心数
   private int containerVirtualCores = DEFAULT_CONTAINER_VCORES;
-  // All other resources to request for the container
-  // on which the shell command will run
+  // 容器请求的其他资源（除内存和CPU外）
   private Map<String, Long> containerResources = new HashMap<>();
-  // Priority of the request
+  // 请求的优先级
   private int requestPriority;
-  // Execution type of the containers.
-  // Default GUARANTEED.
+  // 容器的执行类型，默认为GUARANTEED
   private ExecutionType containerType = ExecutionType.GUARANTEED;
-  // Whether to automatically promote opportunistic containers.
+  // 是否自动提升机会型容器的优先级
   private boolean autoPromoteContainers = false;
-  // Whether to enforce execution type of the containers.
+  // 是否强制容器的执行类型
   private boolean enforceExecType = false;
 
-  // Resource profile for the container
+  // 容器的资源配置文件名称
   private String containerResourceProfile = "";
+  // 资源配置文件映射表
   Map<String, Resource> resourceProfiles;
 
+  // 是否在应用尝试之间保留容器
   private boolean keepContainersAcrossAttempts = false;
 
-  // Counter for completed containers ( complete denotes successful or failed )
+  // 已完成容器计数器（完成包括成功或失败）
   private AtomicInteger numCompletedContainers = new AtomicInteger();
-  // Allocated container count so that we know how many containers has the RM
-  // allocated to us
+  // 已分配容器计数器，用于跟踪RM分配给我们的容器数量
   @VisibleForTesting
   protected AtomicInteger numAllocatedContainers = new AtomicInteger();
-  // Count of failed containers
+  // 失败容器计数器
   private AtomicInteger numFailedContainers = new AtomicInteger();
-  // Count of containers already requested from the RM
-  // Needed as once requested, we should not request for containers again.
-  // Only request for more if the original requirement changes.
+  // 已向RM请求的容器计数器
+  // 一旦请求，不应再次请求相同数量的容器
+  // 只有当原始需求改变时才请求更多容器
   @VisibleForTesting
   protected AtomicInteger numRequestedContainers = new AtomicInteger();
 
+  // 被忽略的容器计数
   protected AtomicInteger numIgnore = new AtomicInteger();
 
+  // 总重试次数上限
   protected AtomicInteger totalRetries = new AtomicInteger(10);
 
-  // Shell command to be executed
+  // 要执行的shell命令
   private String shellCommand = "";
-  // Args to be passed to the shell command
+  // 传递给shell命令的参数
   private String shellArgs = "";
-  // Env variables to be setup for the shell command
+  // 为shell命令设置的环境变量
   private Map<String, String> shellEnv = new HashMap<String, String>();
 
-  // Location of shell script ( obtained from info set in env )
-  // Shell script path in fs
+  // Shell脚本位置（从环境变量中获取）
   private String scriptPath = "";
-  // Timestamp needed for creating a local resource
+  // 创建本地资源所需的时间戳
   private long shellScriptPathTimestamp = 0;
-  // File length needed for local resource
+  // 本地资源所需的文件长度
   private long shellScriptPathLen = 0;
 
-  // Placement Specifications
+  // 容器放置规范
   private Map<String, PlacementSpec> placementSpecs = null;
 
-  // Container retry options
-  private ContainerRetryPolicy containerRetryPolicy =
+  // 容器重试选项
+  private ContainerRetryPolicy containerRetryPolicy = 
       ContainerRetryPolicy.NEVER_RETRY;
+  // 触发容器重试的错误代码集合
   private Set<Integer> containerRetryErrorCodes = null;
+  // 容器最大重试次数
   private int containerMaxRetries = 0;
+  // 容器重试间隔（毫秒）
   private int containrRetryInterval = 0;
+  // 容器失败有效的时间间隔（毫秒）
   private long containerFailuresValidityInterval = -1;
 
+  // 可本地化的文件列表
   private List<String> localizableFiles = new ArrayList<>();
 
-  // Timeline domain ID
+  // Timeline领域ID
   private String domainId = null;
 
-  // Hardcoded path to shell script in launch container's local env
+  // 启动容器本地环境中shell脚本的硬编码路径
   private static final String EXEC_SHELL_STRING_PATH = Client.SCRIPT_PATH
       + ".sh";
   private static final String EXEC_BAT_SCRIPT_STRING_PATH = Client.SCRIPT_PATH
       + ".bat";
 
-  // Hardcoded path to custom log_properties
+  // 自定义日志属性的硬编码路径
   private static final String log4jPath = "log4j.properties";
 
+  // Shell命令路径
   private static final String shellCommandPath = "shellCommands";
+  // Shell参数路径
   private static final String shellArgsPath = "shellArgs";
 
+  // 应用完成标志
   private volatile boolean done;
 
+  // 所有令牌的字节缓冲区
   private ByteBuffer allTokens;
 
-  // Launch threads
+  // 启动线程列表
   private List<Thread> launchThreads = new ArrayList<Thread>();
 
-  // Timeline Client
+  // Timeline客户端
   @VisibleForTesting
   TimelineClient timelineClient;
 
-  // Timeline v2 Client
+  // Timeline v2客户端
   @VisibleForTesting
   TimelineV2Client timelineV2Client;
 
+  // 容器实体组ID
   static final String CONTAINER_ENTITY_GROUP_ID = "CONTAINERS";
+  // Timeline应用ID过滤器名称
   static final String APPID_TIMELINE_FILTER_NAME = "appId";
+  // Timeline用户过滤器名称
   static final String USER_TIMELINE_FILTER_NAME = "user";
   static final String DIAGNOSTICS = "Diagnostics";
 
@@ -389,32 +418,55 @@ public class ApplicationMaster {
   /**
    * @param args Command line args
    */
+  /**
+   * ApplicationMaster主入口方法，负责启动分布式Shell应用的应用主控
+   * 这是YARN架构中应用主控的典型实现，展示了应用从初始化、运行到完成的完整生命周期
+   * 
+   * @param args 命令行参数，包含应用运行所需的配置信息
+   */
   public static void main(String[] args) {
+    // 应用执行结果标志，true表示成功，false表示失败
     boolean result = false;
     ApplicationMaster appMaster = null;
+    
     try {
+      // 创建ApplicationMaster实例
       appMaster = new ApplicationMaster();
-      LOG.info("Initializing ApplicationMaster");
+      
+      // 记录初始化日志
+      LOG.info("初始化ApplicationMaster");
+      
+      // 初始化ApplicationMaster，解析命令行参数和配置
+      // 如果返回false，表示不需要继续运行（例如，只需要打印帮助信息）
       boolean doRun = appMaster.init(args);
       if (!doRun) {
         System.exit(0);
       }
+      
+      // 运行ApplicationMaster的核心逻辑，包括向ResourceManager申请资源
+      // 启动容器，监控任务执行等
       appMaster.run();
+      
+      // 完成应用执行，向ResourceManager发送完成请求
       result = appMaster.finish();
     } catch (Throwable t) {
-      LOG.error("Error running ApplicationMaster", t);
+      // 捕获任何异常，记录错误日志并终止应用
+      LOG.error("运行ApplicationMaster时发生错误", t);
       LogManager.shutdown();
       ExitUtil.terminate(1, t);
     } finally {
+      // 无论执行成功还是失败，都进行清理操作
       if (appMaster != null) {
         appMaster.cleanup();
       }
     }
+    
+    // 根据执行结果退出系统，0表示成功，2表示失败
     if (result) {
-      LOG.info("Application Master completed successfully. exiting");
+      LOG.info("ApplicationMaster成功完成，退出");
       System.exit(0);
     } else {
-      LOG.error("Application Master failed. exiting");
+      LOG.error("ApplicationMaster执行失败，退出");
       System.exit(2);
     }
   }

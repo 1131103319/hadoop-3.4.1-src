@@ -100,7 +100,14 @@ public abstract class Receiver implements DataTransferProtocol {
         description);
   }
 
-  /** Process op by the corresponding method. */
+  /** 根据操作类型分发到对应的处理方法
+   * 
+   * 此方法是数据传输协议的核心分发机制，根据接收到的操作类型(op)调用对应的处理方法
+   * 支持的操作包括读取块、写入块、替换块、复制块、获取块校验和等多种操作
+   * 
+   * @param op 操作类型枚举，定义了数据节点支持的各种数据传输操作
+   * @throws IOException 如果处理过程中发生IO异常
+   */
   protected final void processOp(Op op) throws IOException {
     switch(op) {
     case READ_BLOCK:

@@ -192,11 +192,34 @@ import java.util.concurrent.locks.ReentrantReadWriteLock.WriteLock;
 
 import static org.apache.hadoop.service.Service.STATE.STARTED;
 
+/**
+ * ContainerManagerImpl是YARN NodeManager中负责容器管理的核心实现类
+ * 它负责处理容器的生命周期管理，包括容器的创建、启动、监控和销毁
+ * 
+ * 主要功能包括：
+ * 1. 管理容器的资源本地化（本地文件和依赖项的准备）
+ * 2. 启动和停止容器
+ * 3. 监控容器的资源使用情况
+ * 4. 处理容器的日志收集
+ * 5. 管理辅助服务
+ * 
+ * 该类使用事件驱动架构，通过AsyncDispatcher分发各种容器相关事件
+ */
 public class ContainerManagerImpl extends CompositeService implements
     ContainerManager {
 
+  /**
+   * 容器管理器重初始化操作的枚举类型
+   */
   private enum ReInitOp {
-    RE_INIT, COMMIT, ROLLBACK, LOCALIZE;
+    /** 重初始化操作 */
+    RE_INIT, 
+    /** 提交重初始化更改 */
+    COMMIT, 
+    /** 回滚重初始化更改 */
+    ROLLBACK, 
+    /** 本地化操作 */
+    LOCALIZE;
   }
   /**
    * Extra duration to wait for applications to be killed on shutdown.

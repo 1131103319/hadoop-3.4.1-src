@@ -746,103 +746,146 @@ class BlockSender implements java.io.Closeable {
   }
   
   /**
-   * sendBlock() is used to read block and its metadata and stream the data to
-   * either a client or to another datanode. 
+   * 读取数据块及其元数据并将数据流式传输到客户端或另一个数据节点
    * 
-   * @param out  stream to which the block is written to
-   * @param baseStream optional. if non-null, <code>out</code> is assumed to 
-   *        be a wrapper over this stream. This enables optimizations for
-   *        sending the data, e.g. 
-   *        {@link SocketOutputStream#transferToFully(FileChannel, 
-   *        long, int)}.
-   * @param throttler for sending data.
-   * @return total bytes read, including checksum data.
+   * 此方法是DataNode中数据发送的核心入口点，负责协调数据块的读取和传输过程，
+   * 支持性能跟踪、错误处理和资源管理
+   * 
+   * @param out 用于写入块数据的输出流
+   * @param baseStream 可选参数，若不为空，则假定out是此流的包装，
+   *                   这可以启用数据发送的优化，如使用transferTo方法
+   * @param throttler 用于限制数据传输带宽的节流器
+   * @return 总共读取的字节数，包括校验和数据
+   * @throws IOException 如果传输过程中发生IO异常
    */
   long sendBlock(DataOutputStream out, OutputStream baseStream, 
                  DataTransferThrottler throttler) throws IOException {
+    // 创建性能跟踪范围，用于监控块发送过程
     final TraceScope scope = FsTracer.get(null)
         .newScope("sendBlock_" + block.getBlockId());
     try {
+      // 委托给内部方法doSendBlock进行实际的数据发送
       return doSendBlock(out, baseStream, throttler);
     } finally {
+      // 确保跟踪范围被关闭，无论发送成功还是失败
       scope.close();
     }
   }
 
+  /**
+   * 实际执行数据块发送的内部方法
+   * 
+   * 此方法实现了数据块的分块读取、校验和验证以及网络发送的完整逻辑，
+   * 支持普通传输和优化传输(transferTo)两种模式
+   * 
+   * @param out 用于写入块数据的输出流
+   * @param baseStream 底层输出流，用于优化传输
+   * @param throttler 带宽限制器
+   * @return 总共读取的字节数
+   * @throws IOException 如果传输过程中发生IO异常
+   */
   private long doSendBlock(DataOutputStream out, OutputStream baseStream,
         DataTransferThrottler throttler) throws IOException {
+    // 参数校验：确保输出流不为空
     if (out == null) {
       throw new IOException( "out stream is null" );
     }
+    
+    // 保存初始偏移量和初始化总读取字节数计数器
     initialOffset = offset;
     long totalRead = 0;
+    // 默认使用传入的输出流进行数据发送
     OutputStream streamForSendChunks = out;
     
+    // 初始化缓存丢弃的偏移量
     lastCacheDropOffset = initialOffset;
 
+    // 对于长读操作，通知操作系统此文件描述符将被顺序访问，以优化性能
     if (isLongRead() && ris.getDataInFd() != null) {
-      // Advise that this file descriptor will be accessed sequentially.
       ris.dropCacheBehindReads(block.getBlockName(), 0, 0,
           POSIX_FADV_SEQUENTIAL);
     }
     
-    // Trigger readahead of beginning of file if configured.
+    // 根据配置触发文件开头的预读
     manageOsCache();
 
+    // 如果启用了客户端跟踪日志，记录开始时间
     final long startTime = CLIENT_TRACE_LOG.isDebugEnabled() ? System.nanoTime() : 0;
     try {
+      // 确定每个数据包中最多包含的块数量和数据包缓冲区大小
       int maxChunksPerPacket;
       int pktBufSize = PacketHeader.PKT_MAX_HEADER_LEN;
+      
+      // 判断是否可以使用transferTo优化传输方式
       boolean transferTo = transferToAllowed && !verifyChecksum
           && baseStream instanceof SocketOutputStream
           && ris.getDataIn() instanceof FileInputStream;
+      
       if (transferTo) {
-        FileChannel fileChannel =
+        // 使用transferTo模式：直接从文件通道传输数据到套接字
+        FileChannel fileChannel = 
             ((FileInputStream)ris.getDataIn()).getChannel();
+        // 记录文件通道当前位置
         blockInPosition = fileChannel.position();
+        // 使用底层流进行传输
         streamForSendChunks = baseStream;
+        // 计算每个数据包中的最大块数
         maxChunksPerPacket = numberOfChunks(TRANSFERTO_BUFFER_SIZE);
         
-        // Smaller packet size to only hold checksum when doing transferTo
+        // transferTo模式下，数据包只需容纳校验和
         pktBufSize += checksumSize * maxChunksPerPacket;
       } else {
+        // 使用普通传输模式
         maxChunksPerPacket = Math.max(1,
             numberOfChunks(IO_FILE_BUFFER_SIZE));
-        // Packet size includes both checksum and data
+        // 普通模式下，数据包需要容纳数据和校验和
         pktBufSize += (chunkSize + checksumSize) * maxChunksPerPacket;
       }
 
+      // 分配数据包缓冲区
       ByteBuffer pktBuf = ByteBuffer.allocate(pktBufSize);
 
+      // 循环发送数据，直到发送完所有数据或线程被中断
       while (endOffset > offset && !Thread.currentThread().isInterrupted()) {
+        // 管理操作系统缓存（预读和丢弃）
         manageOsCache();
+        // 发送一个数据包
         long len = sendPacket(pktBuf, maxChunksPerPacket, streamForSendChunks,
             transferTo, throttler);
+        // 更新当前偏移量
         offset += len;
+        // 更新总读取字节数（包括数据和校验和）
         totalRead += len + (numberOfChunks(len) * checksumSize);
+        // 增加序列号
         seqno++;
       }
-      // If this thread was interrupted, then it did not send the full block.
+      
+      // 如果线程没有被中断，则发送完整的块
       if (!Thread.currentThread().isInterrupted()) {
         try {
-          // send an empty packet to mark the end of the block
+          // 发送一个空数据包标记块传输结束
           sendPacket(pktBuf, maxChunksPerPacket, streamForSendChunks, transferTo,
               throttler);
+          // 确保所有数据都被刷新到输出流
           out.flush();
-        } catch (IOException e) { //socket error
+        } catch (IOException e) { // 处理套接字错误
           throw ioeToSocketException(e);
         }
 
+        // 标记已发送完整的字节范围
         sentEntireByteRange = true;
       }
     } finally {
+      // 如果启用了客户端跟踪日志，记录传输完成日志
       if ((clientTraceFmt != null) && CLIENT_TRACE_LOG.isDebugEnabled()) {
         final long endTime = System.nanoTime();
         CLIENT_TRACE_LOG.debug(String.format(clientTraceFmt, totalRead,
             initialOffset, endTime - startTime));
       }
+      // 确保关闭所有资源
       close();
     }
+    // 返回总共读取的字节数
     return totalRead;
   }
 

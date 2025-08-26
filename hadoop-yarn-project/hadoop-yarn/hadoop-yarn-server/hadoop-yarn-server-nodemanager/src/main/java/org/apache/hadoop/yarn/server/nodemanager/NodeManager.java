@@ -953,37 +953,50 @@ public class NodeManager extends CompositeService
     return nodeHealthChecker;
   }
 
+  /**
+   * 初始化并启动NodeManager服务
+   * 该方法是NodeManager启动的核心流程，包括环境检查、关闭钩子设置、服务初始化和启动
+   * 
+   * @param conf YARN配置对象，包含NodeManager启动所需的各种配置参数
+   * @param hasToReboot 是否是重启模式，如果为true则需要移除旧的关闭钩子
+   */
   private void initAndStartNodeManager(Configuration conf, boolean hasToReboot) {
     try {
-      // Failed to start if we're a Unix based system but we don't have bash.
-      // Bash is necessary to launch containers under Unix-based systems.
+      // 在类Unix系统上，检查是否支持bash
+      // 因为在类Unix系统上，bash是启动容器所必需的
       if (!Shell.WINDOWS) {
         if (!Shell.checkIsBashSupported()) {
-          String message =
-              "Failing NodeManager start since we're on a "
-                  + "Unix-based system but bash doesn't seem to be available.";
+          String message = 
+              "NodeManager启动失败，因为当前是类Unix系统但无法找到bash支持";
           LOG.error(message);
           throw new YarnRuntimeException(message);
         }
       }
 
-      // Remove the old hook if we are rebooting.
+      // 如果是重启操作，移除旧的关闭钩子
       if (hasToReboot && null != nodeManagerShutdownHook) {
         ShutdownHookManager.get().removeShutdownHook(nodeManagerShutdownHook);
       }
-        // todo 增加nodeManagerShutdownHook为了在NodeManager关闭或重启时关闭compositeService
+      
+      // 创建并添加新的关闭钩子，确保NodeManager在关闭或重启时能够正确关闭所有服务
       nodeManagerShutdownHook = new CompositeServiceShutdownHook(this);
       ShutdownHookManager.get().addShutdownHook(nodeManagerShutdownHook,
                                                 SHUTDOWN_HOOK_PRIORITY);
-      // System exit should be called only when NodeManager is instantiated from
-      // main() funtion
+      
+      // 标记当收到关闭事件时应当调用System.exit
+      // 这个标志只在从main()函数实例化NodeManager时设置为true
       this.shouldExitOnShutdownEvent = true;
-        // todo 调用init()函数，进行初始化（init方法调用被重写的serviceInit方法进行初始化）
-        this.init(conf);
-        // todo 启动各项服务（start方法内部调用被重写的servicestart方法进行启动各项服务）
-        this.start();
+      
+      // 调用init()方法进行初始化，该方法会调用被重写的serviceInit方法
+      // serviceInit方法负责初始化NodeManager的所有子服务
+      this.init(conf);
+      
+      // 启动NodeManager及其所有子服务
+      // start方法会调用被重写的serviceStart方法
+      this.start();
     } catch (Throwable t) {
-      LOG.error("Error starting NodeManager", t);
+      // 如果启动过程中发生任何异常，记录错误日志并退出系统
+      LOG.error("启动NodeManager时发生错误", t);
       System.exit(-1);
     }
   }
@@ -1062,17 +1075,29 @@ public class NodeManager extends CompositeService
     return this.nmCollectorService;
   }
 
+  /**
+   * NodeManager主入口方法，负责启动YARN节点管理器服务
+   * NodeManager是YARN架构中的核心组件，负责管理单个节点上的资源和容器
+   * 
+   * @param args 命令行参数，可用于指定配置文件等选项
+   * @throws IOException 如果启动过程中发生IO异常
+   */
   public static void main(String[] args) throws IOException {
+    // 设置未捕获异常处理器，确保NodeManager运行过程中的异常能够被正确记录
     Thread.setDefaultUncaughtExceptionHandler(new YarnUncaughtExceptionHandler());
-    //todo 打印nodemanager启动关闭时的日志信息
+    
+    // 打印NodeManager启动和关闭时的日志信息，记录启动参数
     StringUtils.startupShutdownMessage(NodeManager.class, args, LOG);
-    //todo 创建nodemanager对象
+    
+    // 创建NodeManager实例，@SuppressWarnings("resource")表示忽略资源未关闭警告
     @SuppressWarnings("resource")
     NodeManager nodeManager = new NodeManager();
-    //todo 加载配置文件初始化
+    
+    // 创建YARN配置对象并解析命令行参数
     Configuration conf = new YarnConfiguration();
     new GenericOptionsParser(conf, args);
-    //todo 初始化并启动nodemnaager
+    
+    // 初始化并启动NodeManager服务，第二个参数false表示这不是重启操作
     nodeManager.initAndStartNodeManager(conf, false);
   }
 

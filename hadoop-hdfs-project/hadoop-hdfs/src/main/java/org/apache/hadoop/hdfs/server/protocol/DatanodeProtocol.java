@@ -78,40 +78,53 @@ public interface DatanodeProtocol {
     // DNA_TRANSFER指令用于触发数据节点的数据块复制操作，
     // 当HDFS系统中某个数据块 的副本数小于配置的副本系数时，
     // Namenode会通过DNA_TRANSFER指令通知某个拥有这个数据块副本的Datanode将该数据块复制到其他数据节点上。
+    /** 数据块传输命令 - 将数据块传输到另一个数据节点 */
     final static int DNA_TRANSFER = 1;   // transfer blocks to another datanode
-    //todo 数据库删除
-    // todo DNA_INVALIDATE用于 通知Datanode删除数据节点上的指定数据块，
-    // todo 这是因为Namenode发现了某个数据块的副 本数已经超过了配置的副本系数，
-    // todo 这时Namenode会通知某个数据节点删除这个数据节点 上多余的数据块副本。
+    
+    /** 数据块失效命令 - 通知数据节点删除指定的数据块
+     * 当NameNode发现某个数据块的副本数超过了配置的副本系数时，
+     * 会通知某个数据节点删除多余的数据块副本
+     */
     final static int DNA_INVALIDATE = 2; // invalidate blocks
-    // todo 关闭数据节点
-    // todo DNA_SHUTDOWN已经废弃不用了，
-    // todo Datanode接收到DNASHUTDOWN指令后会直接抛出UnsupportedOperationException异常。
-    // todo 关闭Datanode是通过 调用ClientDatanodeProtocol.shutdownDatanode()方法来触发的。
+    
+    /** 关闭数据节点命令
+     * 注意：此命令已废弃，数据节点接收到此指令后会抛出UnsupportedOperationException异常
+     * 关闭数据节点应通过调用ClientDatanodeProtocol.shutdownDatanode()方法触发
+     */
     final static int DNA_SHUTDOWN = 3;   // shutdown node
-    //todo 重新注册数据节点
+    
+    /** 重新注册数据节点命令 */
     final static int DNA_REGISTER = 4;   // re-register
-    //todo 提交上一次升级
+    
+    /** 提交上一次升级命令 */
     final static int DNA_FINALIZE = 5;   // finalize previous upgrade
 
-    //todo 数据块恢复
-    //todo 当客户端在写文件时发生异常退出，会造成数据流管道中不同数据 节点上数据块状态的不一致，
-    // 这时Namenode会从数据流管道中选出一个数据节点作为主 恢复节点，
-    // 协调数据流管道中的其他数据节点进行租约恢复操作，以同步这个数据块的状 态。
+    /** 数据块恢复命令
+     * 当客户端在写文件时异常退出，会造成数据流管道中不同数据节点上数据块状态不一致
+     * NameNode会从数据流管道中选出一个数据节点作为主恢复节点，
+     * 协调其他数据节点进行租约恢复操作，以同步数据块状态
+     */
     final static int DNA_RECOVERBLOCK = 6;  // request a block recovery
-    //todo   //安全相关
+    
+    /** 访问密钥更新命令 - 安全相关 */
     final static int DNA_ACCESSKEYUPDATE = 7;  // update access key
-    // todo 更新平衡器宽度
+    
+    /** 更新平衡器带宽命令 */
     final static int DNA_BALANCERBANDWIDTHUPDATE = 8; // update balancer bandwidth
-    //todo 缓存数据块
+    
+    /** 缓存数据块命令 */
     final static int DNA_CACHE = 9;      // cache blocks
-    //todo   //取消缓存数据块
+    
+    /** 取消缓存数据块命令 */
     final static int DNA_UNCACHE = 10;   // uncache blocks
-    //todo  //擦除编码重建命令
+    
+    /** 擦除编码重建命令 */
     final static int DNA_ERASURE_CODING_RECONSTRUCTION = 11; // erasure coding reconstruction command
-    //todo 块存储移动命令
+    
+    /** 块存储移动命令 */
     int DNA_BLOCK_STORAGE_MOVEMENT = 12; // block storage movement command
-    //todo 删除sps工作命令
+    
+    /** 删除SPS（存储策略满足器）工作命令 */
     int DNA_DROP_SPS_WORK_COMMAND = 13; // drop sps work command
 
     /**

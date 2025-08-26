@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -6,9 +6,9 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- * <p>
- * http://www.apache.org/licenses/LICENSE-2.0
- * <p>
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -16,6 +16,11 @@
  * limitations under the License.
  */
 
+/**
+ * ResourceManager.java是YARN（Yet Another Resource Negotiator）的核心组件，
+ * 负责整个集群的资源管理和调度。它主要管理ApplicationMaster和NodeManager，
+ * 协调集群中的资源分配，确保每个应用程序获得所需的计算资源。
+ */
 package org.apache.hadoop.yarn.server.resourcemanager;
 
 import org.apache.commons.lang3.math.NumberUtils;
@@ -167,6 +172,18 @@ import java.util.concurrent.atomic.AtomicBoolean;
  *
  */
 @SuppressWarnings("unchecked")
+/**
+ * ResourceManager类是YARN架构中的核心组件，负责管理整个集群的资源
+ * 和应用程序调度。它继承自CompositeService，实现了Recoverable和
+ * ResourceManagerMXBean接口。
+ * 
+ * 主要功能包括：
+ * 1. 集群资源管理（内存、CPU等）
+ * 2. 应用程序生命周期管理
+ * 3. 节点管理和监控
+ * 4. 与ApplicationMaster和NodeManager通信
+ * 5. 支持高可用模式
+ */
 public class ResourceManager extends CompositeService
         implements Recoverable, ResourceManagerMXBean {
 
@@ -1792,42 +1809,62 @@ public class ResourceManager extends CompositeService
         setSchedulerRecoveryStartAndWaitTime(state, conf);
     }
 
+    /**
+     * YARN资源管理器的主入口点，负责初始化和启动ResourceManager服务。
+     * <p>
+     * 该方法是YARN集群资源管理的核心启动方法，它支持以下几种操作模式：
+     * 1. 默认模式：启动ResourceManager服务
+     * 2. 格式化模式：使用-format-state-store参数格式化RM状态存储
+     * 3. 配置存储格式化：使用-format-conf-store参数格式化配置存储
+     * 4. 应用移除：使用-remove-application-from-state-store参数从状态存储中移除指定应用
+     * </p>
+     * 
+     * @param argv 命令行参数数组
+     *        - 空参数：默认启动ResourceManager服务
+     *        - -format-state-store：删除并重新格式化RM状态存储
+     *        - -format-conf-store：删除并重新格式化配置存储
+     *        - -remove-application-from-state-store [appId]：从状态存储中移除指定应用
+     */
     public static void main(String argv[]) {
-        //todo 设定主线程出现未定义捕获处理的异常时的handle
+        // 设定主线程出现未捕获异常时的处理器
         Thread.setDefaultUncaughtExceptionHandler(new YarnUncaughtExceptionHandler());
-        //todo 打印启动日志
+        // 打印服务启动日志信息
         StringUtils.startupShutdownMessage(ResourceManager.class, argv, LOG);
         try {
-            //todo 初始化一个yarn配置类实例
+            // 初始化YARN配置对象
             Configuration conf = new YarnConfiguration();
             GenericOptionsParser hParser = new GenericOptionsParser(conf, argv);
             argv = hParser.getRemainingArgs();
-            // If -format-state-store, then delete RMStateStore; else startup normally
+            // 根据命令行参数决定执行不同操作
             if (argv.length >= 1) {
                 if (argv[0].equals("-format-state-store")) {
+                    // 格式化RM状态存储
                     deleteRMStateStore(conf);
                 } else if (argv[0].equals("-format-conf-store")) {
+                    // 格式化配置存储
                     deleteRMConfStore(conf);
                 } else if (argv[0].equals("-remove-application-from-state-store")
                         && argv.length == 2) {
+                    // 从状态存储中移除指定应用
                     removeApplication(conf, argv[1]);
                 } else {
+                    // 打印用法帮助信息
                     printUsage(System.err);
                 }
             } else {
-                //todo 创建对象
+                // 创建ResourceManager实例
                 ResourceManager resourceManager = new ResourceManager();
-                //todo 把CompositeService的ShutdownHook统一添加到shutdownhookmanager
+                // 添加关闭钩子，确保服务能够优雅关闭
                 ShutdownHookManager.get().addShutdownHook(
                         new CompositeServiceShutdownHook(resourceManager),
                         SHUTDOWN_HOOK_PRIORITY);
-                //todo 初始化资源
-                //todo 调用resourcemanager.serviceinit
+                // 初始化ResourceManager服务及其组件
                 resourceManager.init(conf);
-                //todo 启动 调用resourcemanager.servicestart
+                // 启动ResourceManager服务
                 resourceManager.start();
             }
         } catch (Throwable t) {
+            // 捕获并记录启动过程中的任何异常
             LOG.error(FATAL, "Error starting ResourceManager", t);
             System.exit(-1);
         }
